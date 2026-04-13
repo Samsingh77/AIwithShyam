@@ -44,7 +44,7 @@ const apps = [
   }
 ];
 
-export const SuiteSwitcher: React.FC<SuiteSwitcherProps> = ({ currentApp = 'dashboard', onLogout }) => {
+export const SuiteSwitcher: React.FC<SuiteSwitcherProps> = ({ currentApp = 'dashboard', onLogout, onDashboardClick }) => {
   const [isOpen, setIsOpen] = useState(false);
   const activeApp = apps.find(a => a.id === currentApp) || apps[0];
 
