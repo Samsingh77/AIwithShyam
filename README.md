@@ -1,20 +1,35 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300e5ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2a10 10 0 1 0 10 10H12V2z'/%3E%3Cpath d='M12 12L2.1 12.1'/%3E%3Cpath d='M12 12l9.9-0.1'/%3E%3Cpath d='M12 12V22'/%3E%3C/svg%3E" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Primary Meta Tags -->
+    <title>AIwithShyam | Intelligence Meets Imagination</title>
+    <meta name="title" content="AIwithShyam | Intelligence Meets Imagination" />
+    <meta name="description" content="Master portfolio of Shyam Kishore Singh. Showcasing cutting-edge AI development and professional wildlife & portrait photography." />
+    <meta name="keywords" content="AI Developer, Photographer, Shyam Kishore Singh, AIwithShyam, Portfolio, Wildlife Photography, React Developer, GraphToSheets, GeoNex" />
+    <meta name="author" content="Shyam Kishore Singh" />
 
-# Run and deploy your AI Studio app
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://aiwithshyamsingh.com/" />
+    <meta property="og:title" content="AIwithShyam | Intelligence Meets Imagination" />
+    <meta property="og:description" content="Master portfolio of Shyam Kishore Singh. Showcasing cutting-edge AI development and professional wildlife & portrait photography." />
+    <meta property="og:image" content="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=1200" />
 
-This contains everything you need to run your app locally.
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://aiwithshyamsingh.com/" />
+    <meta property="twitter:title" content="AIwithShyam | Intelligence Meets Imagination" />
+    <meta property="twitter:description" content="Master portfolio of Shyam Kishore Singh. Showcasing cutting-edge AI development and professional wildlife & portrait photography." />
+    <meta property="twitter:image" content="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=1200" />
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
 
-View your app in AI Studio: https://ai.studio/apps/1b46314a-ab48-4c19-8f08-0cfcf5bfbb68
-
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
