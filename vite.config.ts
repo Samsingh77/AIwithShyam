@@ -14,10 +14,26 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(express.json());
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || "",
-  key_secret: process.env.RAZORPAY_KEY_SECRET || "",
-});
+let razorpayClient: Razorpay | null = null;
+
+function getRazorpay() {
+  if (!razorpayClient) {
+    const key_id = process.env.RAZORPAY_KEY_ID;
+    const key_secret = process.env.RAZORPAY_KEY_SECRET;
+    
+    if (!key_id || !key_secret) {
+      console.warn("Razorpay keys are missing. Payment features will not work.");
+      // Return a dummy object or throw, depending on how you want to handle it
+      // We'll instantiate it anyway but it might fail later if used
+    }
+    
+    razorpayClient = new Razorpay({
+      key_id: key_id || "dummy_key_id",
+      key_secret: key_secret || "dummy_key_secret",
+    });
+  }
+  return razorpayClient;
+}
 
 // API routes
 app.get("/api/health", (req, res) => {
@@ -36,7 +52,8 @@ app.post("/api/create-order", async (req, res) => {
       receipt: `receipt_${Date.now()}`,
     };
 
-    const order = await razorpay.orders.create(options);
+    const rzp = getRazorpay();
+    const order = await rzp.orders.create(options);
     res.json(order);
   } catch (error) {
     console.error("Razorpay Order Creation Error:", error);
