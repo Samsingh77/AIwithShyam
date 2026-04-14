@@ -1,212 +1,144 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Mail, Lock, ArrowRight, Github, Chrome, AlertCircle, Loader2, UserCircle } from 'lucide-react';
+import { History, ArrowUpRight, ArrowDownLeft, Clock, Search, Filter } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { cn } from '../lib/utils';
 
-interface AuthFormProps {
-  onSuccess?: () => void;
+interface Transaction {
+  id: string;
+  amount: number;
+  type: string;
+  description: string;
+  created_at: string;
+  metadata: any;
 }
 
-export const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [redirectTo, setRedirectTo] = useState<string | null>(null);
+export const TransactionHistory: React.FC<{ userId: string }> = ({ userId }) => {
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const redirect = params.get('redirect');
-    if (redirect) setRedirectTo(redirect);
-  }, []);
+    const fetchTransactions = async () => {
+      const { data, error } = await supabase
+        .from('token_transactions')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
 
-  const handleAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.auth.signUp({ 
-          email, 
-          password,
-          options: {
-            emailRedirectTo: window.location.origin
-          }
-        });
-        if (error) throw error;
-        setError("Success! Please check your email for a verification link.");
-        return;
+      if (!error && data) {
+        setTransactions(data);
       }
-
-      if (onSuccess) onSuccess();
-
-      // Handle SSO Redirect
-      if (redirectTo) {
-        const redirectMap: Record<string, string> = {
-          'graphtosheets': 'https://graphtosheets.aiwithshyam.com',
-          'headshot': 'https://headshotstudiopro.com',
-          'geonex': 'https://geonex.aiwithshyam.com'
-        };
-        const target = redirectMap[redirectTo] || window.location.origin;
-        window.location.href = target;
-      }
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
       setLoading(false);
-    }
-  };
+    };
 
-  const handleOAuth = async (provider: 'google' | 'github') => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: window.location.origin
-        }
-      });
-      if (error) throw error;
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
+    fetchTransactions();
 
-  const handleGuestLogin = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { error } = await supabase.auth.signInAnonymously();
-      if (error) throw error;
-      if (onSuccess) onSuccess();
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    // Subscribe to new transactions
+    const channel = supabase
+      .channel('transaction_updates')
+      .on('postgres_changes', { 
+        event: 'INSERT', 
+        schema: 'public', 
+        table: 'token_transactions',
+        filter: `user_id=eq.${userId}`
+      }, (payload) => {
+        setTransactions(prev => [payload.new as Transaction, ...prev]);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId]);
+
+  if (loading) {
+    return (
+      <div className="p-8 flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-white/10 border-t-cyan-400 rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white/[0.03] border border-white/10 rounded-3xl p-8 backdrop-blur-xl shadow-2xl"
-      >
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-display font-bold text-white mb-2">
-            {isLogin ? 'Welcome Back' : 'Create Account'}
-          </h2>
-          <p className="text-gray-400">
-            {isLogin ? 'Access your AI Master Suite' : 'Join the ecosystem of intelligence'}
-          </p>
+    <div className="bg-white/[0.03] border border-white/10 rounded-3xl overflow-hidden backdrop-blur-xl">
+      <div className="p-6 border-b border-white/5 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-white/5 rounded-lg">
+            <History size={20} className="text-gray-400" />
+          </div>
+          <h3 className="font-bold text-white">Transaction History</h3>
         </div>
+        <div className="flex items-center gap-2">
+          <button className="p-2 hover:bg-white/5 rounded-lg text-gray-500 transition-colors">
+            <Search size={18} />
+          </button>
+          <button className="p-2 hover:bg-white/5 rounded-lg text-gray-500 transition-colors">
+            <Filter size={18} />
+          </button>
+        </div>
+      </div>
 
-        {error && (
-          <div className={cn(
-            "mb-6 p-4 rounded-xl flex items-start gap-3 text-sm",
-            error.includes('Success') ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20"
-          )}>
-            <AlertCircle size={18} className="shrink-0 mt-0.5" />
-            <p>{error}</p>
-          </div>
-        )}
-
-        <form onSubmit={handleAuth} className="space-y-4 font-sans">
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] ml-1">Email Address</label>
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
-                placeholder="name@example.com"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] ml-1">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
-                placeholder="••••••••"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-white text-black font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed group shadow-xl hover:shadow-emerald-500/20"
-          >
-            {loading ? <Loader2 className="animate-spin" size={20} /> : (
-              <>
-                {isLogin ? 'Sign In' : 'Sign Up'}
-                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-              </>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left">
+          <thead>
+            <tr className="border-b border-white/5 bg-white/[0.01]">
+              <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-gray-500">Date</th>
+              <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-gray-500">Description</th>
+              <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-gray-500">Type</th>
+              <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-gray-500 text-right">Amount</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/5">
+            {transactions.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="p-12 text-center text-gray-500 text-sm">
+                  No transactions found in your paper trail.
+                </td>
+              </tr>
+            ) : (
+              transactions.map((tx) => (
+                <motion.tr 
+                  key={tx.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="hover:bg-white/[0.02] transition-colors group"
+                >
+                  <td className="p-4">
+                    <div className="flex items-center gap-2 text-xs text-gray-400">
+                      <Clock size={12} />
+                      {new Date(tx.created_at).toLocaleDateString()}
+                    </div>
+                  </td>
+                  <td className="p-4">
+                    <p className="text-sm font-medium text-white group-hover:text-cyan-400 transition-colors">
+                      {tx.description}
+                    </p>
+                  </td>
+                  <td className="p-4">
+                    <span className={cn(
+                      "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest border",
+                      tx.type === 'purchase' 
+                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
+                        : "bg-purple-500/10 text-purple-400 border-purple-500/20"
+                    )}>
+                      {tx.type}
+                    </span>
+                  </td>
+                  <td className="p-4 text-right">
+                    <div className={cn(
+                      "flex items-center justify-end gap-1 font-mono font-bold",
+                      tx.amount > 0 ? "text-emerald-400" : "text-purple-400"
+                    )}>
+                      {tx.amount > 0 ? <ArrowUpRight size={14} /> : <ArrowDownLeft size={14} />}
+                      {Math.abs(tx.amount).toLocaleString()}
+                    </div>
+                  </td>
+                </motion.tr>
+              ))
             )}
-          </button>
-        </form>
-
-        <div className="relative my-8">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-white/10"></div>
-          </div>
-          <div className="relative flex justify-center text-[10px] font-bold uppercase tracking-widest">
-            <span className="bg-[#050505] px-4 text-gray-500">Or continue with</span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4 mb-4 font-sans">
-          <button
-            onClick={() => handleOAuth('google')}
-            className="flex items-center justify-center gap-3 bg-white/5 border border-white/10 rounded-xl py-3 hover:bg-white/10 transition-all text-sm font-bold text-white"
-          >
-            <Chrome size={18} />
-            Google
-          </button>
-          <button
-            onClick={() => handleOAuth('github')}
-            className="flex items-center justify-center gap-3 bg-white/5 border border-white/10 rounded-xl py-3 hover:bg-white/10 transition-all text-sm font-bold text-white"
-          >
-            <Github size={18} />
-            GitHub
-          </button>
-        </div>
-
-        <button
-          onClick={handleGuestLogin}
-          disabled={loading}
-          className="w-full flex items-center justify-center gap-3 bg-white/5 border border-white/10 rounded-xl py-3 hover:bg-white/10 transition-all text-sm font-bold text-gray-400 hover:text-white disabled:opacity-50 font-sans"
-        >
-          <UserCircle size={18} />
-          Continue as Guest
-        </button>
-
-        <p className="mt-8 text-center text-sm text-gray-500 font-sans">
-          {isLogin ? "Don't have an account?" : "Already have an account?"}{' '}
-          <button
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-emerald-500 font-bold hover:underline"
-          >
-            {isLogin ? 'Sign Up' : 'Sign In'}
-          </button>
-        </p>
-      </motion.div>
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
