@@ -18,8 +18,18 @@ import { Pricing } from "./components/Pricing";
 // --- Components ---
 
 const Navbar = ({ user, onSignOut, onAuthClick, onDashboardClick, onLogoClick }: any) => {
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <nav className="fixed top-0 left-0 w-full z-40 px-6 py-8 flex justify-between items-center">
+    <nav className={`fixed top-0 left-0 w-full z-50 px-6 transition-all duration-300 flex justify-between items-center ${isScrolled ? 'py-4 bg-black/80 backdrop-blur-md border-b border-white/5' : 'py-8 bg-transparent'}`}>
       <motion.div 
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
