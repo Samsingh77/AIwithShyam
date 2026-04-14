@@ -8,7 +8,7 @@ import {
   ExternalLink, Instagram, Linkedin, ArrowRight, Camera, 
   Cpu, Layers, Maximize, ChevronRight, Mail, User
 } from "lucide-react";
-import { useRef, useState, useEffect } from "react";
+import { useRef, MouseEvent, useState, useEffect } from "react";
 import { supabase, isSupabaseConfigured } from "./lib/supabase";
 import { AuthForm } from "./components/AuthForm";
 import { MasterDashboard } from "./components/MasterDashboard";
@@ -26,7 +26,7 @@ const Navbar = ({ user, onSignOut, onAuthClick, onDashboardClick, onLogoClick }:
         className="font-display font-bold text-xl tracking-tighter mix-blend-difference cursor-pointer"
         onClick={onLogoClick}
       >
-        SHYAM SINGH
+        AIwithShyam
       </motion.div>
       
       <motion.div 
@@ -40,13 +40,13 @@ const Navbar = ({ user, onSignOut, onAuthClick, onDashboardClick, onLogoClick }:
           <a href="#pricing" className="hover:text-emerald-500 transition-colors">Pricing</a>
           <a href="#contact" className="hover:text-emerald-500 transition-colors">Contact</a>
         </div>
-        
+
         {user ? (
           <SuiteSwitcher onLogout={onSignOut} onDashboardClick={onDashboardClick} />
         ) : isSupabaseConfigured ? (
           <button 
             onClick={onAuthClick}
-            className="flex items-center gap-2 px-6 py-3 bg-white text-black rounded-full text-xs font-bold uppercase tracking-widest hover:bg-emerald-500 transition-all shadow-xl hover:shadow-emerald-500/20"
+            className="flex items-center gap-2 px-6 py-3 bg-white text-black rounded-full text-xs font-bold uppercase tracking-widest hover:bg-emerald-500 transition-all shadow-lg hover:shadow-emerald-500/20"
           >
             <User size={14} />
             Sign In
@@ -82,7 +82,7 @@ const Hero = () => {
         />
       </motion.div>
 
-      <div className="relative z-20 text-center max-w-6xl pt-20 pb-40">
+      <div className="relative z-20 text-center max-w-6xl pt-40 pb-40">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -123,29 +123,29 @@ const ProductCard = ({ title, description, icon: Icon, link, index, isComingSoon
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.1, duration: 0.5 }}
-      className="group relative bg-brand-gray/30 border border-white/5 p-8 rounded-2xl hover:bg-brand-gray/50 transition-all duration-500 overflow-hidden"
+      className="group relative bg-brand-gray/30 border border-white/5 p-6 rounded-2xl hover:bg-brand-gray/50 transition-all duration-500 overflow-hidden"
     >
-      <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-700">
-        <Icon size={120} />
+      <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-700">
+        <Icon size={80} />
       </div>
       
       <div className="relative z-10">
-        <div className="w-12 h-12 bg-brand-accent/10 rounded-lg flex items-center justify-center mb-6 text-brand-accent group-hover:bg-brand-accent group-hover:text-brand-black transition-colors duration-500">
-          <Icon size={24} />
+        <div className="w-10 h-10 bg-brand-accent/10 rounded-lg flex items-center justify-center mb-4 text-brand-accent group-hover:bg-brand-accent group-hover:text-brand-black transition-colors duration-500">
+          <Icon size={20} />
         </div>
-        <div className="flex items-center gap-3 mb-3">
-          <h3 className="font-display font-bold text-2xl tracking-tight">{title}</h3>
+        <div className="flex items-center gap-3 mb-2">
+          <h3 className="font-display font-bold text-lg tracking-tight">{title}</h3>
           {isComingSoon && (
             <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[8px] font-mono uppercase tracking-widest text-gray-500">
               Soon
             </span>
           )}
         </div>
-        <p className="text-gray-400 text-sm leading-relaxed mb-8 max-w-[240px]">
+        <p className="text-gray-400 text-xs leading-relaxed mb-6 max-w-[240px]">
           {description}
         </p>
         {isComingSoon ? (
-          <div className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-gray-600 cursor-not-allowed">
+          <div className="inline-flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-gray-600 cursor-not-allowed">
             Development Phase
           </div>
         ) : (
@@ -153,9 +153,9 @@ const ProductCard = ({ title, description, icon: Icon, link, index, isComingSoon
             href={link} 
             target="_blank" 
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-brand-accent hover:gap-4 transition-all duration-300"
+            className="inline-flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-brand-accent hover:gap-4 transition-all duration-300"
           >
-            Launch App <ArrowRight size={14} />
+            Launch App <ArrowRight size={12} />
           </a>
         )}
       </div>
@@ -174,7 +174,7 @@ const AISuite = () => {
     },
     {
       title: "HeadshotStudioPro",
-      description: "Upload a simple selfie and let our AI generate premium, photorealistic headshots.",
+      description: "Upload a simple selfie and let our AI generate premium, photorealistic headshots for your LinkedIn, CV, or company website.",
       icon: Cpu,
       link: "https://headshotstudiopro.com/",
       isComingSoon: false
@@ -204,12 +204,12 @@ const AISuite = () => {
             Digital <br /> Intelligence.
           </h2>
         </div>
-        <p className="text-gray-400 max-w-sm mb-2 text-sm leading-relaxed">
-          A collection of specialized tools designed to bridge the gap between complex data and human intuition.
+        <p className="text-gray-500 max-w-xs text-sm font-mono uppercase tracking-wider leading-relaxed">
+          Building tools that bridge the gap between complex data and human intuition.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {products.map((product, i) => (
           <ProductCard key={product.title} {...product} index={i} />
         ))}
@@ -254,6 +254,10 @@ const PhotographyShowcase = () => {
           <h2 className="font-display font-bold text-5xl md:text-7xl tracking-tighter uppercase mb-6">
             Visual Storytelling.
           </h2>
+          <p className="text-gray-400 max-w-2xl mx-auto text-balance">
+            Capturing the raw beauty of the wild and the soul of the subject. 
+            Every frame is a narrative waiting to be told.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 auto-rows-[300px]">
@@ -272,9 +276,9 @@ const PhotographyShowcase = () => {
                 className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-700"
                 referrerPolicy="no-referrer"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 p-8 flex flex-col justify-end">
-                <span className="text-brand-accent font-mono text-[10px] uppercase tracking-widest mb-2">{photo.category}</span>
-                <h4 className="text-white font-display font-bold text-2xl tracking-tight">{photo.title}</h4>
+              <div className="absolute inset-0 bg-gradient-to-t from-brand-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-8">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-brand-accent mb-2">{photo.category}</span>
+                <h4 className="font-display font-bold text-2xl uppercase tracking-tight">{photo.title}</h4>
               </div>
             </motion.div>
           ))}
@@ -285,6 +289,23 @@ const PhotographyShowcase = () => {
 };
 
 const Footer = () => {
+  const buttonRef = useRef<HTMLAnchorElement>(null);
+  
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!buttonRef.current) return;
+    const { clientX, clientY } = e;
+    const { left, top, width, height } = buttonRef.current.getBoundingClientRect();
+    const x = clientX - (left + width / 2);
+    const y = clientY - (top + height / 2);
+    
+    buttonRef.current.style.transform = `translate(${x * 0.2}px, ${y * 0.2}px)`;
+  };
+
+  const handleMouseLeave = () => {
+    if (!buttonRef.current) return;
+    buttonRef.current.style.transform = `translate(0px, 0px)`;
+  };
+
   return (
     <footer id="contact" className="py-32 px-6 border-t border-white/5">
       <div className="max-w-7xl mx-auto">
@@ -293,43 +314,63 @@ const Footer = () => {
             <h2 className="font-display font-bold text-6xl md:text-8xl tracking-tighter uppercase mb-8">
               LET'S <br /> COLLABORATE.
             </h2>
+            <p className="text-gray-400 text-lg mb-12 max-w-xl leading-relaxed">
+              I am <span className="text-white">Shyam Kishore Singh</span>, a creator standing at the crossroads of logic and light. 
+              By day, I engineer the future as an <span className="text-white">AI Developer</span>, building systems that solve complex problems. 
+              Through my lens, I am a <span className="text-white">Wildlife Photographer</span>, capturing the raw, silent stories of the wild. 
+              My work is a simple mission: to blend the precision of technology with the soul of storytelling.
+            </p>
             <div className="flex flex-wrap gap-6">
-              <a href="mailto:shyamsingh1977@gmail.com" className="group flex items-center gap-4 bg-white text-brand-black px-8 py-4 rounded-full font-bold uppercase text-sm tracking-widest hover:bg-brand-accent transition-all duration-300 ease-out">
-                Get in Touch <Mail size={18} />
+              <a 
+                ref={buttonRef}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+                href="mailto:shyamsingh1977@gmail.com" 
+                className="group flex items-center gap-4 bg-white text-brand-black px-8 py-4 rounded-full font-bold uppercase text-sm tracking-widest hover:bg-brand-accent transition-all duration-300 ease-out"
+              >
+                Get in Touch <Mail size={18} className="group-hover:translate-x-1 transition-transform" />
               </a>
-              <div className="flex items-center gap-4">
-                <a href="#" className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-white hover:text-brand-black transition-all">
-                  <Instagram size={20} />
-                </a>
-                <a href="#" className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-white hover:text-brand-black transition-all">
+              <div className="flex gap-4">
+                <a 
+                  href="https://www.linkedin.com/in/shyam-singh/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-14 h-14 border border-white/10 rounded-full flex items-center justify-center hover:bg-white hover:text-brand-black transition-all duration-300"
+                >
                   <Linkedin size={20} />
+                </a>
+                <a 
+                  href="https://www.instagram.com/thesamphotography_shyamsingh/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-14 h-14 border border-white/10 rounded-full flex items-center justify-center hover:bg-white hover:text-brand-black transition-all duration-300"
+                >
+                  <Instagram size={20} />
                 </a>
               </div>
             </div>
           </div>
-          
-          <div className="grid grid-cols-2 gap-12">
-            <div>
-              <h4 className="font-mono text-[10px] uppercase tracking-widest text-gray-500 mb-6">Navigation</h4>
-              <ul className="space-y-4 text-sm font-medium">
-                <li><a href="#ai-suite" className="hover:text-brand-accent transition-colors">AI Suite</a></li>
-                <li><a href="#photography" className="hover:text-brand-accent transition-colors">Photography</a></li>
-                <li><a href="#pricing" className="hover:text-brand-accent transition-colors">Pricing</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-mono text-[10px] uppercase tracking-widest text-gray-500 mb-6">Legal</h4>
-              <ul className="space-y-4 text-sm font-medium">
-                <li><a href="#" className="hover:text-brand-accent transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-brand-accent transition-colors">Terms of Service</a></li>
-              </ul>
-            </div>
+
+          <div className="relative aspect-square rounded-3xl overflow-hidden grayscale hover:grayscale-0 transition-all duration-1000">
+            <img 
+              src="https://images.unsplash.com/photo-1493612276216-ee3925520721?auto=format&fit=crop&q=80&w=1000" 
+              alt="Shyam Kishore Singh" 
+              className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
+            />
+            <div className="absolute inset-0 bg-brand-accent/10 mix-blend-overlay" />
           </div>
         </div>
-        
-        <div className="mt-32 pt-8 border-t border-white/5 flex flex-col md:row justify-between items-center gap-6 text-[10px] font-mono uppercase tracking-widest text-gray-600">
-          <p>© 2024 Shyam Singh. All rights reserved.</p>
-          <p>Built with Intelligence & Imagination</p>
+
+        <div className="mt-32 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] font-mono uppercase tracking-[0.3em] text-gray-600">
+          <span>© 2026 SHYAM KISHORE SINGH</span>
+          <div className="flex gap-8">
+            <span>AI WITH SHYAM SINGH</span>
+            <div className="w-px h-4 bg-white/10 hidden md:block" />
+            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+          </div>
+          <span>Built with Precision</span>
         </div>
       </div>
     </footer>
@@ -347,14 +388,21 @@ export default function App() {
       return;
     }
 
+    // Check initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
+    }).catch(err => {
+      console.error("Supabase session check failed:", err);
+      setLoading(false);
     });
 
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      if (!session?.user) setView('landing');
+      if (!session?.user) {
+        setView('landing');
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -369,39 +417,77 @@ export default function App() {
     if (!user) return;
     
     try {
-      const response = await fetch('/api/create-order', {
+      // 1. Create Order on Backend
+      const orderResponse = await fetch('/api/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: JSON.stringify({ 
           amount: plan.prices[currency],
-          currency: currency,
-          planId: plan.id,
-          userId: user.id
-        })
+          currency: currency
+        }),
       });
 
-      const order = await response.json();
+      if (!orderResponse.ok) throw new Error("Failed to create payment order");
+      const orderData = await orderResponse.json();
 
+      // 2. Initialize Razorpay Options
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-        amount: order.amount,
-        currency: order.currency,
-        name: "Shyam Singh AI Suite",
-        description: `Purchase ${plan.tokens} Tokens`,
-        order_id: order.id,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "AIwithShyam",
+        description: `${plan.name} - ${plan.tokens} Tokens`,
+        image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Shyam",
+        order_id: orderData.id,
         handler: async (response: any) => {
-          await fetch('/api/verify-payment', {
+          // 3. Verify Payment on Backend
+          const verifyResponse = await fetch('/api/verify-payment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              userId: user.id,
-              tokens: plan.tokens
-            })
+              razorpay_signature: response.razorpay_signature
+            }),
           });
-          alert("Payment Successful! Tokens added to your wallet.");
+
+          const verifyData = await verifyResponse.json();
+
+          if (verifyData.success) {
+            // 4. Update Tokens in Supabase
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('tokens')
+              .eq('id', user.id)
+              .single();
+            
+            const currentTokens = profile?.tokens || 0;
+            const newTokens = currentTokens + plan.tokens;
+
+            await supabase
+              .from('profiles')
+              .update({ tokens: newTokens })
+              .eq('id', user.id);
+
+            // 5. Log Transaction
+            await supabase
+              .from('token_transactions')
+              .insert([{
+                user_id: user.id,
+                amount: plan.tokens,
+                type: 'purchase',
+                description: `${plan.name} Purchase`,
+                metadata: { 
+                  plan_id: plan.id, 
+                  price: plan.price,
+                  razorpay_payment_id: response.razorpay_payment_id 
+                }
+              }]);
+
+            alert("Payment Successful! Your tokens have been added.");
+          } else {
+            alert("Payment verification failed. Please contact support.");
+          }
         },
         prefill: {
           name: user.user_metadata?.full_name || "",
@@ -508,23 +594,26 @@ export default function App() {
         )}
       </AnimatePresence>
       
+      {/* Custom Styles for the border-text effect */}
       <style>{`
-        .cinematic-grain {
-          position: fixed;
-          inset: 0;
-          background-image: url("https://grainy-gradients.vercel.app/noise.svg");
-          opacity: 0.03;
-          pointer-events: none;
-          z-index: 50;
-        }
         .border-text {
           -webkit-text-stroke: 1px rgba(255, 255, 255, 0.3);
-          color: transparent;
         }
         @media (min-width: 768px) {
           .border-text {
             -webkit-text-stroke: 2px rgba(255, 255, 255, 0.3);
           }
+        }
+        .cinematic-grain {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          z-index: 50;
+          opacity: 0.03;
+          background-image: url("https://grainy-gradients.vercel.app/noise.svg");
         }
       `}</style>
     </main>
