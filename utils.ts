@@ -1,144 +1,146 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
-import { History, ArrowUpRight, ArrowDownLeft, Clock, Search, Filter } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import React, { useState } from 'react';
+import { ChevronDown, LayoutGrid, Layers, Cpu, Maximize, ExternalLink, LogOut, User } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 
-interface Transaction {
-  id: string;
-  amount: number;
-  type: string;
-  description: string;
-  created_at: string;
-  metadata: any;
+interface SuiteSwitcherProps {
+  currentApp?: string;
+  onLogout?: () => void;
+  onDashboardClick?: () => void;
 }
 
-export const TransactionHistory: React.FC<{ userId: string }> = ({ userId }) => {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      const { data, error } = await supabase
-        .from('token_transactions')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
-
-      if (!error && data) {
-        setTransactions(data);
-      }
-      setLoading(false);
-    };
-
-    fetchTransactions();
-
-    // Subscribe to new transactions
-    const channel = supabase
-      .channel('transaction_updates')
-      .on('postgres_changes', { 
-        event: 'INSERT', 
-        schema: 'public', 
-        table: 'token_transactions',
-        filter: `user_id=eq.${userId}`
-      }, (payload) => {
-        setTransactions(prev => [payload.new as Transaction, ...prev]);
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [userId]);
-
-  if (loading) {
-    return (
-      <div className="p-8 flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-white/10 border-t-cyan-400 rounded-full animate-spin" />
-      </div>
-    );
+const apps = [
+  {
+    id: 'dashboard',
+    name: 'Master Dashboard',
+    description: 'Central Hub',
+    icon: LayoutGrid,
+    url: '/',
+    color: 'text-emerald-400'
+  },
+  {
+    id: 'graphtosheets',
+    name: 'GraphToSheets',
+    description: 'Chart to Excel',
+    icon: Layers,
+    url: 'https://graphtosheets.aiwithshyam.com',
+    color: 'text-emerald-400'
+  },
+  {
+    id: 'headshot',
+    name: 'HeadshotStudioPro',
+    description: 'AI Photography',
+    icon: Cpu,
+    url: 'https://headshotstudiopro.com',
+    color: 'text-purple-400'
+  },
+  {
+    id: 'geonex',
+    name: 'GeoNex',
+    description: 'Spatial AI',
+    icon: Maximize,
+    url: 'https://geonex.aiwithshyam.com',
+    color: 'text-amber-400'
   }
+];
+
+export const SuiteSwitcher: React.FC<SuiteSwitcherProps> = ({ currentApp = 'dashboard', onLogout, onDashboardClick }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const activeApp = apps.find(a => a.id === currentApp) || apps[0];
 
   return (
-    <div className="bg-white/[0.03] border border-white/10 rounded-3xl overflow-hidden backdrop-blur-xl">
-      <div className="p-6 border-b border-white/5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-white/5 rounded-lg">
-            <History size={20} className="text-gray-400" />
-          </div>
-          <h3 className="font-bold text-white">Transaction History</h3>
+    <div className="relative z-50 font-sans">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-3 px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all group"
+      >
+        <div className={cn("p-1.5 rounded-lg bg-black/40", activeApp.color)}>
+          <activeApp.icon size={18} />
         </div>
-        <div className="flex items-center gap-2">
-          <button className="p-2 hover:bg-white/5 rounded-lg text-gray-500 transition-colors">
-            <Search size={18} />
-          </button>
-          <button className="p-2 hover:bg-white/5 rounded-lg text-gray-500 transition-colors">
-            <Filter size={18} />
-          </button>
+        <div className="text-left hidden sm:block">
+          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest leading-none mb-1.5">Master Suite</p>
+          <p className="text-sm font-bold text-white leading-none">{activeApp.name}</p>
         </div>
-      </div>
+        <ChevronDown size={16} className={cn("text-gray-500 transition-transform duration-300", isOpen && "rotate-180")} />
+      </button>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="border-b border-white/5 bg-white/[0.01]">
-              <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-gray-500">Date</th>
-              <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-gray-500">Description</th>
-              <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-gray-500">Type</th>
-              <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-gray-500 text-right">Amount</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/5">
-            {transactions.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="p-12 text-center text-gray-500 text-sm">
-                  No transactions found in your paper trail.
-                </td>
-              </tr>
-            ) : (
-              transactions.map((tx) => (
-                <motion.tr 
-                  key={tx.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="hover:bg-white/[0.02] transition-colors group"
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <div className="fixed inset-0" onClick={() => setIsOpen(false)} />
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              className="absolute top-full left-0 mt-2 w-72 bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl"
+            >
+              <div className="p-2 grid gap-1">
+                {apps.map((app) => (
+                  app.id === 'dashboard' ? (
+                    <button
+                      key={app.id}
+                      onClick={() => {
+                        onDashboardClick?.();
+                        setIsOpen(false);
+                      }}
+                      className={cn(
+                        "w-full flex items-center gap-4 p-3 rounded-xl transition-all group",
+                        app.id === currentApp ? "bg-white/5" : "hover:bg-white/5"
+                      )}
+                    >
+                      <div className={cn(
+                        "p-2 rounded-lg bg-black/40 border border-white/5 group-hover:border-white/10 transition-colors",
+                        app.color
+                      )}>
+                        <app.icon size={20} />
+                      </div>
+                      <div className="flex-1 min-w-0 text-left">
+                        <p className="text-sm font-semibold text-white truncate">{app.name}</p>
+                        <p className="text-xs text-gray-500 truncate">{app.description}</p>
+                      </div>
+                    </button>
+                  ) : (
+                    <a
+                      key={app.id}
+                      href={app.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={cn(
+                        "flex items-center gap-4 p-3 rounded-xl transition-all group",
+                        app.id === currentApp ? "bg-white/5" : "hover:bg-white/5"
+                      )}
+                    >
+                      <div className={cn(
+                        "p-2 rounded-lg bg-black/40 border border-white/5 group-hover:border-white/10 transition-colors",
+                        app.color
+                      )}>
+                        <app.icon size={20} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-white truncate">{app.name}</p>
+                        <p className="text-xs text-gray-500 truncate">{app.description}</p>
+                      </div>
+                      <ExternalLink size={14} className="text-gray-600 group-hover:text-gray-400" />
+                    </a>
+                  )
+                ))}
+              </div>
+
+              <div className="border-t border-white/5 p-2 bg-white/[0.02]">
+                <button
+                  onClick={onLogout}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-500/10 text-gray-400 hover:text-red-400 transition-all group"
                 >
-                  <td className="p-4">
-                    <div className="flex items-center gap-2 text-xs text-gray-400">
-                      <Clock size={12} />
-                      {new Date(tx.created_at).toLocaleDateString()}
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <p className="text-sm font-medium text-white group-hover:text-cyan-400 transition-colors">
-                      {tx.description}
-                    </p>
-                  </td>
-                  <td className="p-4">
-                    <span className={cn(
-                      "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest border",
-                      tx.type === 'purchase' 
-                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
-                        : "bg-purple-500/10 text-purple-400 border-purple-500/20"
-                    )}>
-                      {tx.type}
-                    </span>
-                  </td>
-                  <td className="p-4 text-right">
-                    <div className={cn(
-                      "flex items-center justify-end gap-1 font-mono font-bold",
-                      tx.amount > 0 ? "text-emerald-400" : "text-purple-400"
-                    )}>
-                      {tx.amount > 0 ? <ArrowUpRight size={14} /> : <ArrowDownLeft size={14} />}
-                      {Math.abs(tx.amount).toLocaleString()}
-                    </div>
-                  </td>
-                </motion.tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+                  <div className="p-2 rounded-lg bg-black/40 border border-white/5 group-hover:border-red-500/20">
+                    <LogOut size={18} />
+                  </div>
+                  <span className="text-sm font-medium">Sign Out</span>
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
