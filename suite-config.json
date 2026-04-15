@@ -1,0 +1,26 @@
+[
+  {
+    "id": "graphtosheets",
+    "name": "GraphToSheets",
+    "description": "Chart Image to Excel",
+    "url": "https://graphtosheets.aiwithshyam.com",
+    "icon": "spreadsheet",
+    "color": "bg-emerald-500"
+  },
+  {
+    "id": "headshotpro",
+    "name": "HeadshotStudioPro",
+    "description": "AI Professional Headshots",
+    "url": "https://headshotstudiopro.com",
+    "icon": "user",
+    "color": "bg-blue-500"
+  },
+  {
+    "id": "mastersuite",
+    "name": "AI with Shyam",
+    "description": "The Master Suite",
+    "url": "https://aiwithshyam.com",
+    "icon": "sparkles",
+    "color": "bg-slate-900"
+  }
+]

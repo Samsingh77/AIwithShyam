@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import dotenv from "dotenv";
-import cors from "cors"; // <-- Imported CORS
+import cors from "cors";
 
 dotenv.config();
 
@@ -27,19 +27,27 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
+    
+    // 1. Check if it's in our exact VIP list
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
     }
-    return callback(null, true);
+    
+    // 2. Allow AI Studio Preview URLs dynamically (so you can test GraphToSheets!)
+    if (origin.includes("ais-dev-") || origin.includes("ais-pre-")) {
+      return callback(null, true);
+    }
+
+    var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+    return callback(new Error(msg), false);
   },
   credentials: true
 }));
 
 app.use(express.json());
 
-// --- RAZORPAY SETUP ---
 let razorpayClient: Razorpay | null = null;
 
 function getRazorpay() {
@@ -59,17 +67,17 @@ function getRazorpay() {
   return razorpayClient;
 }
 
-// --- API ROUTES ---
+// API routes
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "AIwithShyam Master Hub API is active" });
 });
 
 app.post("/api/create-order", async (req, res) => {
   try {
-    const { amount, currency = "INR" } = req.body; // Defaulting to INR
+    const { amount, currency = "INR" } = req.body;
     
     const options = {
-      amount: Math.round(amount * 100), // Convert to paise
+      amount: Math.round(amount * 100),
       currency,
       receipt: `receipt_${Date.now()}`,
     };
@@ -104,7 +112,7 @@ app.post("/api/verify-payment", async (req, res) => {
   }
 });
 
-// --- VITE & STATIC FILES ---
+// Setup Vite middleware for local development only
 async function setupServer() {
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
