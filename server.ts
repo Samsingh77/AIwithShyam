@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import dotenv from "dotenv";
+import cors from "cors"; // <-- Imported CORS
 
 dotenv.config();
 
@@ -12,8 +13,33 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+// --- SECURITY: CORS VIP LIST ---
+// Only these websites are allowed to ask for payment popups
+const allowedOrigins = [
+  "http://localhost:3000", // Local testing
+  "http://localhost:5173", // Local testing (Vite)
+  "https://aiwithshyam.com", // Master Dashboard
+  "https://graphtosheets.aiwithshyam.com", // App 1
+  "https://headshotstudiopro.com", // App 2
+  "https://geonex.aiwithshyam.com" // App 3
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true
+}));
+
 app.use(express.json());
 
+// --- RAZORPAY SETUP ---
 let razorpayClient: Razorpay | null = null;
 
 function getRazorpay() {
@@ -33,16 +59,17 @@ function getRazorpay() {
   return razorpayClient;
 }
 
-// API routes
+// --- API ROUTES ---
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "AIwithShyam Master Hub API is active" });
 });
 
 app.post("/api/create-order", async (req, res) => {
   try {
-    const { amount, currency = "USD" } = req.body;
+    const { amount, currency = "INR" } = req.body; // Defaulting to INR
+    
     const options = {
-      amount: Math.round(amount * 100),
+      amount: Math.round(amount * 100), // Convert to paise
       currency,
       receipt: `receipt_${Date.now()}`,
     };
@@ -77,8 +104,7 @@ app.post("/api/verify-payment", async (req, res) => {
   }
 });
 
-// Setup Vite middleware for local development only
-// We do NOT call this function automatically. It's only used if someone runs `node server.js` directly.
+// --- VITE & STATIC FILES ---
 async function setupServer() {
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
@@ -100,8 +126,6 @@ async function setupServer() {
   });
 }
 
-// If this file is run directly (e.g., `node server.js`), start the server.
-// Otherwise, just export the Express app for Vercel to use.
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   setupServer();
 }
