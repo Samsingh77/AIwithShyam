@@ -153,7 +153,7 @@ export const MasterDashboard: React.FC<MasterDashboardProps> = ({ user, onBackTo
             <SidebarItem id="overview" icon={LayoutDashboard} label="Overview" />
             <SidebarItem id="apps" icon={Grid} label="AI Apps" />
             <SidebarItem id="assets" icon={ImageIcon} label="My Assets" />
-            <SidebarItem id="billing" icon={CreditCard} label="Billing & Tokens" />
+            <SidebarItem id="billing" icon={CreditCard} label="Billing & Credits" />
           </nav>
 
           <div className="pt-6 border-t border-white/5 space-y-2">
@@ -209,7 +209,7 @@ export const MasterDashboard: React.FC<MasterDashboardProps> = ({ user, onBackTo
                 <div>
                   <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest leading-none mb-1.5">Balance</p>
                   <p className="text-lg font-mono font-bold text-white leading-none">
-                    {loadingTokens ? '...' : tokens.toLocaleString()} <span className="text-xs text-emerald-500/50">TKNS</span>
+                    {loadingTokens ? '...' : tokens.toLocaleString()} <span className="text-xs text-emerald-500/50">CRDTS</span>
                   </p>
                 </div>
               </div>
@@ -375,7 +375,7 @@ export const MasterDashboard: React.FC<MasterDashboardProps> = ({ user, onBackTo
                       </div>
                       <div className="text-center md:text-right bg-black/40 backdrop-blur-xl border border-white/10 p-8 rounded-3xl min-w-[240px]">
                         <p className="text-6xl font-display font-bold text-white mb-2 tracking-tighter">{tokens.toLocaleString()}</p>
-                        <p className="text-xs text-emerald-400 font-bold uppercase tracking-[0.2em]">Available Tokens</p>
+                        <p className="text-xs text-emerald-400 font-bold uppercase tracking-[0.2em]">Available Credits</p>
                       </div>
                     </div>
                   </div>

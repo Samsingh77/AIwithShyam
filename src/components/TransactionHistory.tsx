@@ -54,7 +54,7 @@ export const TransactionHistory: React.FC<{ userId: string }> = ({ userId }) => 
   if (loading) {
     return (
       <div className="p-8 flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-white/10 border-t-cyan-400 rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-white/10 border-t-emerald-400 rounded-full animate-spin" />
       </div>
     );
   }
@@ -110,7 +110,7 @@ export const TransactionHistory: React.FC<{ userId: string }> = ({ userId }) => 
                     </div>
                   </td>
                   <td className="p-4">
-                    <p className="text-sm font-medium text-white group-hover:text-cyan-400 transition-colors">
+                    <p className="text-sm font-medium text-white group-hover:text-emerald-400 transition-colors">
                       {tx.description}
                     </p>
                   </td>

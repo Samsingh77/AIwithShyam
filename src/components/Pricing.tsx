@@ -54,7 +54,7 @@ export const Pricing: React.FC<PricingProps> = ({ user, onAuthClick, onPurchase 
             transition={{ delay: 0.1 }}
             className="text-gray-600 max-w-2xl mx-auto text-base font-body mb-8"
           >
-            One unified wallet for all Shyam Singh AI tools. Tokens never expire and work across the entire ecosystem.
+            One unified wallet for all Shyam Singh AI tools. Credits never expire and work across the entire ecosystem.
           </motion.p>
 
           {/* Currency Toggle */}
@@ -121,7 +121,7 @@ export const Pricing: React.FC<PricingProps> = ({ user, onAuthClick, onPurchase 
                         <div className="p-1.5 bg-emerald-100 rounded-lg">
                           <Zap size={16} className="text-emerald-600" />
                         </div>
-                        <span className="text-sm font-bold text-gray-900">AI Tokens</span>
+                        <span className="text-sm font-bold text-gray-900">AI Credits</span>
                       </div>
                     </td>
                     {PRICING_PLANS.map(plan => (
@@ -133,8 +133,8 @@ export const Pricing: React.FC<PricingProps> = ({ user, onAuthClick, onPurchase 
                   <tr className="border-b border-gray-100 group hover:bg-gray-50/50 transition-colors">
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className="p-1.5 bg-blue-100 rounded-lg">
-                          <FileText size={16} className="text-blue-600" />
+                        <div className="p-1.5 bg-emerald-100 rounded-lg">
+                          <FileText size={16} className="text-emerald-600" />
                         </div>
                         <span className="text-sm font-bold text-gray-700">Chart Extractions</span>
                       </div>
