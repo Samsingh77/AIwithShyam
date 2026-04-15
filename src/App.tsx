@@ -5,8 +5,17 @@
 
 import { motion, useScroll, useTransform, AnimatePresence } from "motion/react";
 import { 
-  ExternalLink, Instagram, Linkedin, ArrowRight, Camera, 
-  Cpu, Layers, Maximize, ChevronRight, Mail, User
+  ExternalLink, 
+  Instagram, 
+  Linkedin, 
+  ArrowRight, 
+  Camera, 
+  Cpu, 
+  Layers, 
+  Maximize, 
+  ChevronRight,
+  Mail,
+  User
 } from "lucide-react";
 import { useRef, MouseEvent, useState, useEffect } from "react";
 import { supabase, isSupabaseConfigured } from "./lib/supabase";
@@ -33,7 +42,7 @@ const Navbar = ({ user, onSignOut, onAuthClick, onDashboardClick, onLogoClick }:
       <motion.div 
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
-        className="font-display font-bold text-xl tracking-tighter mix-blend-difference cursor-pointer"
+        className="font-signature text-3xl font-medium tracking-wide mix-blend-difference cursor-pointer"
         onClick={onLogoClick}
       >
         AIwithShyam
@@ -446,7 +455,7 @@ export default function App() {
         amount: orderData.amount,
         currency: orderData.currency,
         name: "AIwithShyam",
-        description: `${plan.name} - ${plan.tokens} Tokens`,
+        description: `${plan.name} - ${plan.tokens} Credits`,
         image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Shyam",
         order_id: orderData.id,
         handler: async (response: any) => {
@@ -629,3 +638,4 @@ export default function App() {
     </main>
   );
 }
+
