@@ -54,25 +54,27 @@ let razorpayClient: Razorpay | null = null;
 
 function getRazorpay() {
   if (!razorpayClient) {
+    const key_id = process.env.RAZORPAY_KEY_ID || "dummy_id";
+    const key_secret = process.env.RAZORPAY_KEY_SECRET || "dummy_secret";
+
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      console.warn("Razorpay keys are missing. Payment features will not work.");
+    }
+
     try {
-      const key_id = process.env.RAZORPAY_KEY_ID;
-      const key_secret = process.env.RAZORPAY_KEY_SECRET;
-      
-      if (!key_id || !key_secret) {
-        console.warn("Razorpay keys are missing. Payment features will not work.");
-      }
-      
-      razorpayClient = new (Razorpay as any).default({
-        key_id: key_id || "dummy_key_id",
-        key_secret: key_secret || "dummy_key_secret",
+      // Handle various ways the library can be exported
+      const RZP: any = (Razorpay as any).default || Razorpay;
+      razorpayClient = new RZP({
+        key_id,
+        key_secret
       });
     } catch (e) {
-      console.error("Failed to initialize Razorpay client:", e);
-      // Fallback for types or ESM issues
-      razorpayClient = new Razorpay({
-        key_id: process.env.RAZORPAY_KEY_ID || "dummy_key_id",
-        key_secret: process.env.RAZORPAY_KEY_SECRET || "dummy_key_secret",
-      }) as any;
+      console.error("Razorpay Init Error:", e);
+      // Final attempt: maybe the constructor is directly on Razorpay
+      razorpayClient = new (Razorpay as any)({
+        key_id,
+        key_secret
+      });
     }
   }
   return razorpayClient;
@@ -87,6 +89,10 @@ app.post("/api/create-order", async (req, res) => {
   try {
     const { amount, currency = "INR" } = req.body;
     
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: "Invalid amount", details: "Amount must be greater than 0" });
+    }
+
     console.log(`Creating Razorpay order for: ${amount} ${currency}`);
 
     const options = {
