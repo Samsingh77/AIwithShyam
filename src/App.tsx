@@ -453,11 +453,19 @@ export default function App() {
       });
 
       if (!orderResponse.ok) {
-        const errorData = await orderResponse.json().catch(() => ({}));
-        const errorMessage = typeof errorData.details === 'object' 
-          ? JSON.stringify(errorData.details) 
-          : (errorData.details || errorData.error || orderResponse.statusText);
-        throw new Error(`Failed to create payment order: ${errorMessage}`);
+        let errorMsg = `Payment Server Error (${orderResponse.status})`;
+        try {
+          // Clone the response because we might need to read text() if json() fails
+          const clone = orderResponse.clone();
+          const errorData = await clone.json();
+          errorMsg = errorData.details || errorData.error || errorMsg;
+        } catch (e) {
+          // Fallback if not JSON
+          const text = await orderResponse.text().catch(() => "");
+          if (text) errorMsg = `${errorMsg}: ${text.slice(0, 100)}`;
+          else errorMsg = `${errorMsg}: ${orderResponse.statusText || "No response body"}`;
+        }
+        throw new Error(errorMsg);
       }
       const orderData = await orderResponse.json();
 
