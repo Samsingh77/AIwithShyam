@@ -54,17 +54,26 @@ let razorpayClient: Razorpay | null = null;
 
 function getRazorpay() {
   if (!razorpayClient) {
-    const key_id = process.env.RAZORPAY_KEY_ID;
-    const key_secret = process.env.RAZORPAY_KEY_SECRET;
-    
-    if (!key_id || !key_secret) {
-      console.warn("Razorpay keys are missing. Payment features will not work.");
+    try {
+      const key_id = process.env.RAZORPAY_KEY_ID;
+      const key_secret = process.env.RAZORPAY_KEY_SECRET;
+      
+      if (!key_id || !key_secret) {
+        console.warn("Razorpay keys are missing. Payment features will not work.");
+      }
+      
+      razorpayClient = new (Razorpay as any).default({
+        key_id: key_id || "dummy_key_id",
+        key_secret: key_secret || "dummy_key_secret",
+      });
+    } catch (e) {
+      console.error("Failed to initialize Razorpay client:", e);
+      // Fallback for types or ESM issues
+      razorpayClient = new Razorpay({
+        key_id: process.env.RAZORPAY_KEY_ID || "dummy_key_id",
+        key_secret: process.env.RAZORPAY_KEY_SECRET || "dummy_key_secret",
+      }) as any;
     }
-    
-    razorpayClient = new Razorpay({
-      key_id: key_id || "dummy_key_id",
-      key_secret: key_secret || "dummy_key_secret",
-    });
   }
   return razorpayClient;
 }
@@ -139,29 +148,45 @@ app.post("/api/verify-payment", async (req, res) => {
 });
 
 // Setup Vite middleware for local development only
-async function setupServer() {
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
-  }
-
-  const PORT = 3000;
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+// Error handler middleware
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error("Global Server Error:", err);
+  res.status(500).json({
+    error: "Internal Server Error",
+    details: err.message || "An unexpected error occurred"
   });
+});
+
+async function setupServer() {
+  try {
+    if (process.env.NODE_ENV !== "production") {
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: "spa",
+      });
+      app.use(vite.middlewares);
+    } else {
+      const distPath = path.join(process.cwd(), "dist");
+      app.use(express.static(distPath));
+      app.get("*", (req, res) => {
+        const indexPath = path.join(distPath, "index.html");
+        res.sendFile(indexPath);
+      });
+    }
+
+    if (process.env.NODE_ENV !== "production") {
+      const PORT = 3000;
+      app.listen(PORT, "0.0.0.0", () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+      });
+    }
+  } catch (error) {
+    console.error("Failed to start server:", error);
+  }
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  setupServer();
-}
+// Always call setupServer to ensure routes are registered, 
+// but it won't call listen() in production environments like Vercel
+setupServer();
 
 export default app;
