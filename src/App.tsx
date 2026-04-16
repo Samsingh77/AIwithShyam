@@ -446,7 +446,10 @@ export default function App() {
         }),
       });
 
-      if (!orderResponse.ok) throw new Error("Failed to create payment order");
+      if (!orderResponse.ok) {
+        const errorData = await orderResponse.json().catch(() => ({}));
+        throw new Error(`Failed to create payment order: ${errorData.details || errorData.error || orderResponse.statusText}`);
+      }
       const orderData = await orderResponse.json();
 
       // 2. Initialize Razorpay Options
@@ -522,7 +525,7 @@ export default function App() {
 
     } catch (err: any) {
       console.error("Purchase Error:", err);
-      alert("An error occurred during the purchase process.");
+      alert(`An error occurred during the purchase process: ${err.message || "Unknown error"}`);
     }
   };
 
