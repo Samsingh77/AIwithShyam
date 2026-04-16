@@ -165,34 +165,27 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 async function setupServer() {
   try {
+    // ONLY run Vite in local development
     if (process.env.NODE_ENV !== "production") {
       const vite = await createViteServer({
         server: { middlewareMode: true },
         appType: "spa",
       });
       app.use(vite.middlewares);
-    } else {
-      const distPath = path.join(process.cwd(), "dist");
-      app.use(express.static(distPath));
-      app.get("*", (req, res) => {
-        const indexPath = path.join(distPath, "index.html");
-        res.sendFile(indexPath);
-      });
-    }
-
-    if (process.env.NODE_ENV !== "production") {
+      
       const PORT = 3000;
       app.listen(PORT, "0.0.0.0", () => {
         console.log(`Server running on http://localhost:${PORT}`);
       });
     }
+    // Note: In production (Vercel), static files are handled by vercel.json rewrites
+    // so we don't need express.static or catch-all routes here.
   } catch (error) {
     console.error("Failed to start server:", error);
   }
 }
 
-// Always call setupServer to ensure routes are registered, 
-// but it won't call listen() in production environments like Vercel
+// Initialize server logic (only matters for local dev)
 setupServer();
 
 export default app;
