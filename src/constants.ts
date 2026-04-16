@@ -18,7 +18,7 @@ export const PRICING_PLANS = [
   { 
     id: 'starter', 
     name: 'Micro Pack', 
-    prices: { USD: 2.38, INR: 199, EUR: 2.19, GBP: 1.86 },
+    prices: { USD: 0.01, INR: 1, EUR: 0.01, GBP: 0.01 },
     tokens: 10, 
     features: ['10 AI Credits', 'Enough for 10 Charts', '2 HD Headshots, 4 Preview Headshots', 'High Precision AI', 'No Expiration'], 
     buttonText: 'Buy Credits', 
