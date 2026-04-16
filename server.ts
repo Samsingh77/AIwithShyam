@@ -77,18 +77,31 @@ app.post("/api/create-order", async (req, res) => {
   try {
     const { amount, currency = "INR" } = req.body;
     
+    console.log(`Creating Razorpay order for: ${amount} ${currency}`);
+
     const options = {
       amount: Math.round(amount * 100),
-      currency,
+      currency: currency.toUpperCase(),
       receipt: `receipt_${Date.now()}`,
     };
+
+    console.log("Razorpay Options:", JSON.stringify(options));
 
     const rzp = getRazorpay();
     const order = await rzp.orders.create(options);
     res.json(order);
   } catch (error: any) {
     console.error("Razorpay Order Creation Error:", error);
-    res.status(500).json({ error: "Failed to create order", details: error.message || error });
+    // Razorpay often sends errors in a nested structure: { error: { code, description } }
+    const errorDetails = error.error || error;
+    const errorMessage = typeof errorDetails === 'object' 
+      ? (errorDetails.description || errorDetails.message || JSON.stringify(errorDetails)) 
+      : errorDetails;
+
+    res.status(500).json({ 
+      error: "Failed to create order", 
+      details: errorMessage 
+    });
   }
 });
 
