@@ -36,12 +36,13 @@ app.use(cors({
       return callback(null, true);
     }
     
-    // 2. Allow AI Studio Preview URLs dynamically (so you can test GraphToSheets!)
-    if (origin.includes("ais-dev-") || origin.includes("ais-pre-")) {
+    // 2. Allow AI Studio Preview URLs dynamically
+    if (origin.includes("ais-dev-") || origin.includes("ais-pre-") || origin.includes("run.app")) {
       return callback(null, true);
     }
 
-    var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+    console.warn(`CORS Blocked Origin: ${origin}`);
+    const msg = 'The CORS policy for this site does not allow access from the specified Origin: ' + origin;
     return callback(new Error(msg), false);
   },
   credentials: true
@@ -92,15 +93,26 @@ app.post("/api/create-order", async (req, res) => {
     res.json(order);
   } catch (error: any) {
     console.error("Razorpay Order Creation Error:", error);
+    
+    // Check if we are using dummy keys
+    const isDummy = !process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_ID === "dummy_key_id";
+    
     // Razorpay often sends errors in a nested structure: { error: { code, description } }
     const errorDetails = error.error || error;
-    const errorMessage = typeof errorDetails === 'object' 
+    let errorMessage = typeof errorDetails === 'object' 
       ? (errorDetails.description || errorDetails.message || JSON.stringify(errorDetails)) 
-      : errorDetails;
+      : String(errorDetails);
+
+    if (isDummy) {
+      errorMessage = "CRITICAL: Razorpay API keys are missing or invalid in Vercel settings. " + errorMessage;
+    }
+
+    console.error(`Final Backend Error Message: ${errorMessage}`);
 
     res.status(500).json({ 
       error: "Failed to create order", 
-      details: errorMessage 
+      details: errorMessage,
+      code: errorDetails.code || "UNKNOWN_ERROR"
     });
   }
 });
