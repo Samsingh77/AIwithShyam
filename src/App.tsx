@@ -432,8 +432,14 @@ export default function App() {
     setView('landing');
   };
 
-  const handlePurchase = async (plan: any, currency: string = "USD") => {
+  const handlePurchase = async (plan: any, currency: string = "INR") => {
     if (!user) return;
+    
+    // Don't process free trial or 0 amount plans through Razorpay
+    if (plan.prices[currency] <= 0) {
+      alert("This is a free plan and doesn't require payment.");
+      return;
+    }
     
     try {
       // 1. Create Order on Backend
@@ -448,7 +454,10 @@ export default function App() {
 
       if (!orderResponse.ok) {
         const errorData = await orderResponse.json().catch(() => ({}));
-        throw new Error(`Failed to create payment order: ${errorData.details || errorData.error || orderResponse.statusText}`);
+        const errorMessage = typeof errorData.details === 'object' 
+          ? JSON.stringify(errorData.details) 
+          : (errorData.details || errorData.error || orderResponse.statusText);
+        throw new Error(`Failed to create payment order: ${errorMessage}`);
       }
       const orderData = await orderResponse.json();
 
