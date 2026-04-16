@@ -20,6 +20,7 @@ const allowedOrigins = [
   "http://localhost:3000", // Local testing
   "http://localhost:5173", // Local testing (Vite)
   "https://aiwithshyam.com", // Master Dashboard
+  "https://www.aiwithshyam.com", // Master Dashboard (www)
   "https://graphtosheets.aiwithshyam.com", // App 1
   "https://headshotstudiopro.com", // App 2
   "https://geonex.aiwithshyam.com" // App 3
@@ -85,9 +86,9 @@ app.post("/api/create-order", async (req, res) => {
     const rzp = getRazorpay();
     const order = await rzp.orders.create(options);
     res.json(order);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Razorpay Order Creation Error:", error);
-    res.status(500).json({ error: "Failed to create order" });
+    res.status(500).json({ error: "Failed to create order", details: error.message || error });
   }
 });
 
