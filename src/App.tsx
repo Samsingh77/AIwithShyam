@@ -21,10 +21,33 @@ import { useRef, MouseEvent, useState, useEffect } from "react";
 import { supabase, isSupabaseConfigured } from "./lib/supabase";
 import { AuthForm } from "./components/AuthForm";
 import { MasterDashboard } from "./components/MasterDashboard";
+import { AdminDashboard } from "./components/AdminDashboard";
 import { SuiteSwitcher } from "./components/SuiteSwitcher";
 import { Pricing } from "./components/Pricing";
 
 // --- Components ---
+
+const Logo = ({ onClick }: { onClick?: () => void }) => (
+  <motion.div 
+    initial={{ opacity: 0, x: -20 }}
+    animate={{ opacity: 1, x: 0 }}
+    className="flex items-center gap-1 cursor-pointer group"
+    onClick={onClick}
+  >
+    <div className="flex items-center">
+      <span className="font-display font-black text-2xl tracking-tighter text-white group-hover:text-emerald-500 transition-colors">
+        AI
+      </span>
+      <span className="font-display font-light text-2xl tracking-tighter text-emerald-500/80 group-hover:text-emerald-400 transition-colors ml-0.5">
+        WITH
+      </span>
+      <span className="font-display font-black text-2xl tracking-tighter text-white group-hover:text-emerald-500 transition-colors ml-1">
+        SHYAM
+      </span>
+    </div>
+    <div className="ml-1 w-1 h-1 rounded-full bg-emerald-500 animate-pulse self-end mb-2" />
+  </motion.div>
+);
 
 const Navbar = ({ user, onSignOut, onAuthClick, onDashboardClick, onLogoClick }: any) => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -39,14 +62,7 @@ const Navbar = ({ user, onSignOut, onAuthClick, onDashboardClick, onLogoClick }:
 
   return (
     <nav className={`fixed top-0 left-0 w-full z-50 px-6 transition-all duration-300 flex justify-between items-center ${isScrolled ? 'py-4 bg-black/80 backdrop-blur-md border-b border-white/5' : 'py-8 bg-transparent'}`}>
-      <motion.div 
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        className="font-signature text-3xl font-medium tracking-wide mix-blend-difference cursor-pointer"
-        onClick={onLogoClick}
-      >
-        AIwithShyam
-      </motion.div>
+      <Logo onClick={onLogoClick} />
       
       <motion.div 
         initial={{ opacity: 0, x: 20 }}
@@ -381,15 +397,17 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="mt-32 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] font-mono uppercase tracking-[0.3em] text-gray-600">
-          <span>© 2026 SHYAM KISHORE SINGH</span>
-          <div className="flex gap-8">
-            <span>AI WITH SHYAM SINGH</span>
-            <div className="w-px h-4 bg-white/10 hidden md:block" />
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+        <div className="mt-32 pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
+          <div className="flex flex-col items-center md:items-start gap-2">
+            <Logo />
+            <span className="text-[9px] font-mono uppercase tracking-[0.4em] text-gray-600">© 2026 SHYAM KISHORE SINGH</span>
           </div>
-          <span>Built with Precision</span>
+          <div className="flex flex-wrap justify-center gap-8 text-[10px] font-mono uppercase tracking-[0.2em] text-gray-500">
+            <a href="#" className="hover:text-emerald-500 transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-emerald-500 transition-colors">Terms of Service</a>
+            <div className="w-px h-4 bg-white/10 hidden md:block" />
+            <span className="text-gray-600">Built with Precision</span>
+          </div>
         </div>
       </div>
     </footer>
@@ -399,7 +417,10 @@ const Footer = () => {
 export default function App() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<'landing' | 'auth' | 'dashboard'>('landing');
+  const [view, setView] = useState<'landing' | 'auth' | 'dashboard' | 'admin'>('landing');
+
+  const ADMIN_EMAIL = "shyamsingh1977@gmail.com";
+  const isAdmin = user?.email?.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase();
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
@@ -563,7 +584,7 @@ export default function App() {
     <main className="relative font-sans selection:bg-brand-accent selection:text-brand-black overflow-x-hidden bg-[#0a0a0a] text-white min-h-screen">
       <div className="cinematic-grain" />
       
-      {view !== 'dashboard' && (
+      {view !== 'dashboard' && view !== 'admin' && (
         <Navbar 
           user={user} 
           onSignOut={handleSignOut} 
@@ -628,7 +649,18 @@ export default function App() {
             <MasterDashboard 
               user={user} 
               onBackToLanding={() => setView('landing')} 
+              onAdminClick={() => setView('admin')}
             />
+          </motion.div>
+        )}
+        {view === 'admin' && isAdmin && (
+          <motion.div
+            key="admin"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <AdminDashboard onBack={() => setView('dashboard')} />
           </motion.div>
         )}
       </AnimatePresence>
