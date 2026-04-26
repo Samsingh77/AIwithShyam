@@ -19,11 +19,14 @@ import {
 } from "lucide-react";
 import { useRef, MouseEvent, useState, useEffect } from "react";
 import { supabase, isSupabaseConfigured } from "./lib/supabase";
+import { APPS_COLLECTION, MASTER_PLATFORM_CONFIG } from "./constants/apps";
 import { AuthForm } from "./components/AuthForm";
 import { MasterDashboard } from "./components/MasterDashboard";
 import { AdminDashboard } from "./components/AdminDashboard";
 import { SuiteSwitcher } from "./components/SuiteSwitcher";
+import { UserMenu } from "./components/UserMenu";
 import { Pricing } from "./components/Pricing";
+import { ecosystemService, AppEntry, PlatformConfig } from "./services/ecosystemService";
 
 // --- Components ---
 
@@ -35,21 +38,21 @@ const Logo = ({ onClick }: { onClick?: () => void }) => (
     onClick={onClick}
   >
     <div className="flex items-center">
-      <span className="font-display font-black text-2xl tracking-tighter text-white group-hover:text-emerald-500 transition-colors">
-        AI
+      <span className="font-display font-black text-2xl tracking-tighter text-white group-hover:text-emerald-500 transition-colors uppercase">
+        {MASTER_PLATFORM_CONFIG.name.split('WITH')[0]}
       </span>
       <span className="font-display font-light text-2xl tracking-tighter text-emerald-500/80 group-hover:text-emerald-400 transition-colors ml-0.5">
         WITH
       </span>
-      <span className="font-display font-black text-2xl tracking-tighter text-white group-hover:text-emerald-500 transition-colors ml-1">
-        SHYAM
+      <span className="font-display font-black text-2xl tracking-tighter text-white group-hover:text-emerald-500 transition-colors ml-1 uppercase">
+        {MASTER_PLATFORM_CONFIG.name.split('WITH')[1]}
       </span>
     </div>
     <div className="ml-1 w-1 h-1 rounded-full bg-emerald-500 animate-pulse self-end mb-2" />
   </motion.div>
 );
 
-const Navbar = ({ user, onSignOut, onAuthClick, onDashboardClick, onLogoClick }: any) => {
+const Navbar = ({ user, onSignOut, onAuthClick, onDashboardClick, onLogoClick, onAdminClick, isAdmin, dynamicApps, platformConfig }: any) => {
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -77,7 +80,20 @@ const Navbar = ({ user, onSignOut, onAuthClick, onDashboardClick, onLogoClick }:
         </div>
 
         {user ? (
-          <SuiteSwitcher onLogout={onSignOut} onDashboardClick={onDashboardClick} />
+          <div className="flex items-center gap-3">
+            {/* <SuiteSwitcher 
+              onDashboardClick={onDashboardClick} 
+              dynamicApps={dynamicApps}
+            /> */}
+            <UserMenu 
+              user={user} 
+              onSignOut={onSignOut} 
+              onDashboardClick={onDashboardClick}
+              onAdminClick={onAdminClick}
+              isAdmin={isAdmin}
+              platformConfig={platformConfig}
+            />
+          </div>
         ) : isSupabaseConfigured ? (
           <button 
             onClick={onAuthClick}
@@ -199,37 +215,6 @@ const ProductCard = ({ title, description, icon: Icon, link, index, isComingSoon
 };
 
 const AISuite = () => {
-  const products = [
-    {
-      title: "GraphToSheets",
-      description: "Transform chart images into editable Excel spreadsheets with AI precision.",
-      icon: Layers,
-      link: "https://graphtosheets.aiwithshyam.com",
-      isComingSoon: false
-    },
-    {
-      title: "HeadshotStudioPro",
-      description: "Upload a simple selfie and let our AI generate premium, photorealistic headshots for your LinkedIn, CV, or company website.",
-      icon: Cpu,
-      link: "https://headshotstudiopro.com/",
-      isComingSoon: false
-    },
-    {
-      title: "GeoNex",
-      description: "Advanced Geospatial AI for deep spatial analysis and intelligent mapping.",
-      icon: Maximize,
-      link: "https://geonex.aiwithshyam.com",
-      isComingSoon: false
-    },
-    {
-      title: "Image Sharpening",
-      description: "AI-driven image restoration and sharpening for crystal clear visual assets.",
-      icon: Camera,
-      link: "https://sharpen.aiwithshyam.com",
-      isComingSoon: false
-    }
-  ];
-
   return (
     <section id="ai-suite" className="py-32 px-6 max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
@@ -245,8 +230,16 @@ const AISuite = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {products.map((product, i) => (
-          <ProductCard key={product.title} {...product} index={i} />
+        {APPS_COLLECTION.map((app, i) => (
+          <ProductCard 
+            key={app.id} 
+            title={app.title} 
+            description={app.description} 
+            icon={app.icon} 
+            link={app.url} 
+            index={i} 
+            isComingSoon={app.status === 'Coming Soon'} 
+          />
         ))}
       </div>
     </section>
@@ -256,28 +249,44 @@ const AISuite = () => {
 const PhotographyShowcase = () => {
   const photos = [
     {
-      url: "https://images.unsplash.com/photo-1546182990-dffeafbe841d?auto=format&fit=crop&q=80&w=1000",
-      title: "The King",
-      category: "Wildlife",
-      span: "md:col-span-2 md:row-span-2"
+      url: "https://auqwezpczravciclsemz.supabase.co/storage/v1/object/public/headshost/indexpage_img/Photography0.png",
+      title: "Wildlife Harmony",
+      category: "Wildlife"
     },
     {
-      url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=1000",
-      title: "Soul",
-      category: "Portrait",
-      span: "md:col-span-1 md:row-span-1"
+      url: "https://auqwezpczravciclsemz.supabase.co/storage/v1/object/public/headshost/indexpage_img/Photography1.png",
+      title: "Maternal Bond",
+      category: "Wildlife"
     },
     {
-      url: "https://images.unsplash.com/photo-1516422213484-214444ae4eb7?auto=format&fit=crop&q=80&w=1000",
-      title: "Vastness",
-      category: "Landscape",
-      span: "md:col-span-1 md:row-span-2"
+      url: "https://auqwezpczravciclsemz.supabase.co/storage/v1/object/public/headshost/indexpage_img/Photography4.png",
+      title: "Elephant Twilight",
+      category: "Wildlife"
     },
     {
-      url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=1000",
-      title: "Gaze",
-      category: "Portrait",
-      span: "md:col-span-1 md:row-span-1"
+      url: "https://auqwezpczravciclsemz.supabase.co/storage/v1/object/public/headshost/indexpage_img/Photography5.png",
+      title: "Leopard Repose",
+      category: "Wildlife"
+    },
+    {
+      url: "https://auqwezpczravciclsemz.supabase.co/storage/v1/object/public/headshost/indexpage_img/Photography6.png",
+      title: "Golden Hour Sentinel",
+      category: "Wildlife"
+    },
+    {
+      url: "https://auqwezpczravciclsemz.supabase.co/storage/v1/object/public/headshost/indexpage_img/Photography7.png",
+      title: "Kingfisher Precision",
+      category: "Wildlife"
+    },
+    {
+      url: "https://auqwezpczravciclsemz.supabase.co/storage/v1/object/public/headshost/indexpage_img/Photography8.png",
+      title: "Shadow Hunter",
+      category: "Wildlife"
+    },
+    {
+      url: "https://auqwezpczravciclsemz.supabase.co/storage/v1/object/public/headshost/indexpage_img/Photography3.png",
+      title: "Wild Majesty",
+      category: "Wildlife"
     }
   ];
 
@@ -286,34 +295,34 @@ const PhotographyShowcase = () => {
       <div className="max-w-7xl mx-auto">
         <div className="mb-16 text-center">
           <span className="font-mono text-xs uppercase tracking-widest text-brand-accent mb-4 block">The Artist's Eye</span>
-          <h2 className="font-display font-bold text-5xl md:text-7xl tracking-tighter uppercase mb-6">
+          <h2 className="font-display font-bold text-5xl md:text-7xl tracking-tighter uppercase mb-6 text-balance text-white">
             Visual Storytelling.
           </h2>
           <p className="text-gray-400 max-w-2xl mx-auto text-balance">
-            Capturing the raw beauty of the wild and the soul of the subject. 
-            Every frame is a narrative waiting to be told.
+            Capturing the raw beauty of the wild in its true form.
+            Every frame preserves the natural proportions and light of the moment.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 auto-rows-[300px]">
+        <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
           {photos.map((photo, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className={`group relative overflow-hidden rounded-2xl ${photo.span}`}
+              transition={{ delay: i * 0.1, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              className="break-inside-avoid relative group overflow-hidden rounded-xl border border-white/5 bg-black/20"
             >
               <img 
                 src={photo.url} 
                 alt={photo.title} 
-                className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-700"
+                className="w-full h-auto object-contain group-hover:scale-[1.02] transition-all duration-700 ease-out"
                 referrerPolicy="no-referrer"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-brand-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-8">
-                <span className="font-mono text-[10px] uppercase tracking-widest text-brand-accent mb-2">{photo.category}</span>
-                <h4 className="font-display font-bold text-2xl uppercase tracking-tight">{photo.title}</h4>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-6">
+                <span className="font-mono text-[9px] uppercase tracking-widest text-brand-accent mb-1">{photo.category}</span>
+                <h4 className="font-display font-bold text-lg uppercase tracking-wider text-white">{photo.title}</h4>
               </div>
             </motion.div>
           ))}
@@ -360,7 +369,7 @@ const Footer = () => {
                 ref={buttonRef}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
-                href="mailto:shyamsingh1977@gmail.com" 
+                href="mailto:aiwithshyamsingh@gmail.com" 
                 className="group flex items-center gap-4 bg-white text-brand-black px-8 py-4 rounded-full font-bold uppercase text-sm tracking-widest hover:bg-brand-accent transition-all duration-300 ease-out"
               >
                 Get in Touch <Mail size={18} className="group-hover:translate-x-1 transition-transform" />
@@ -386,14 +395,14 @@ const Footer = () => {
             </div>
           </div>
 
-          <div className="relative aspect-square rounded-3xl overflow-hidden grayscale hover:grayscale-0 transition-all duration-1000">
+          <div className="relative rounded-3xl overflow-hidden transition-all duration-1000 group">
             <img 
-              src="https://images.unsplash.com/photo-1493612276216-ee3925520721?auto=format&fit=crop&q=80&w=1000" 
+              src="https://auqwezpczravciclsemz.supabase.co/storage/v1/object/public/headshost/indexpage_img/collaborate.png" 
               alt="Shyam Kishore Singh" 
-              className="w-full h-full object-cover"
+              className="w-full h-auto object-contain group-hover:scale-[1.03] transition-transform duration-1000 ease-out"
               referrerPolicy="no-referrer"
             />
-            <div className="absolute inset-0 bg-brand-accent/10 mix-blend-overlay" />
+            <div className="absolute inset-0 bg-brand-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
           </div>
         </div>
 
@@ -418,9 +427,30 @@ export default function App() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'landing' | 'auth' | 'dashboard' | 'admin'>('landing');
+  const [dynamicApps, setDynamicApps] = useState<AppEntry[]>([]);
+  const [platformConfig, setPlatformConfig] = useState<PlatformConfig | null>(null);
 
   const ADMIN_EMAIL = "shyamsingh1977@gmail.com";
   const isAdmin = user?.email?.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase();
+
+  useEffect(() => {
+    // Fetch Dynamic Ecosystem Config
+    if (isSupabaseConfigured) {
+      ecosystemService.fetchApps().then(apps => {
+        console.log("Supabase Apps Fetched:", apps.length);
+        if (apps.length === 0) {
+          console.warn("⚠️ No apps found in Supabase. Check 'apps_registry' table and RLS policies.");
+        }
+        setDynamicApps(apps);
+      });
+      ecosystemService.fetchPlatformConfig().then(config => {
+        if (!config) {
+          console.warn("⚠️ Platform config not found. Check 'platform_settings' table.");
+        }
+        setPlatformConfig(config);
+      });
+    }
+  }, []);
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
@@ -429,18 +459,31 @@ export default function App() {
     }
 
     // Check initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error("Supabase session check failed:", error.message);
+        // If there's an error like "Refresh Token Not Found", force a sign out to clear stale local storage
+        if (error.message.toLowerCase().includes('refresh token')) {
+          supabase.auth.signOut();
+        }
+      }
       setUser(session?.user ?? null);
       setLoading(false);
     }).catch(err => {
-      console.error("Supabase session check failed:", err);
+      console.error("Uncaught Supabase session check failure:", err);
       setLoading(false);
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
-      if (!session?.user) {
+      
+      if (event === 'SIGNED_OUT' || !session?.user) {
+        setView('landing');
+      }
+
+      // Handle potential refresh token errors emitted through events
+      if (event === 'USER_UPDATED' && !session) {
         setView('landing');
       }
     });
@@ -591,6 +634,10 @@ export default function App() {
           onAuthClick={() => setView('auth')} 
           onDashboardClick={() => setView('dashboard')}
           onLogoClick={() => setView('landing')}
+          onAdminClick={() => setView('admin')}
+          isAdmin={isAdmin}
+          dynamicApps={dynamicApps}
+          platformConfig={platformConfig}
         />
       )}
 
@@ -650,6 +697,8 @@ export default function App() {
               user={user} 
               onBackToLanding={() => setView('landing')} 
               onAdminClick={() => setView('admin')}
+              dynamicApps={dynamicApps}
+              platformConfig={platformConfig}
             />
           </motion.div>
         )}

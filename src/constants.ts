@@ -19,8 +19,8 @@ export const PRICING_PLANS = [
     id: 'starter', 
     name: 'Micro Pack', 
     prices: { USD: 2.38, INR: 199, EUR: 2.19, GBP: 1.86 },
-    tokens: 10, 
-    features: ['10 AI Credits', 'Enough for 10 Charts', '2 HD Headshots, 4 Preview Headshots', 'High Precision AI', 'No Expiration'], 
+    tokens: 20, 
+    features: ['20 AI Credits', 'Enough for 20 Charts', '4 HD Headshots, 8 Preview Headshots', 'High Precision AI', 'No Expiration'], 
     buttonText: 'Buy Credits', 
     highlight: false 
   },
@@ -28,8 +28,8 @@ export const PRICING_PLANS = [
     id: 'standard', 
     name: 'Standard Suite', 
     prices: { USD: 8.37, INR: 699, EUR: 7.70, GBP: 6.53 },
-    tokens: 50, 
-    features: ['50 AI Credits', '50 Charts OR 10 HD Headshots, 25 Preview Headshots', 'Priority AI Processing', '24/7 Priority Support', 'Advanced Analytics'], 
+    tokens: 80, 
+    features: ['80 AI Credits', '80 Charts OR 16 HD Headshots, 40 Preview Headshots', 'Priority AI Processing', '24/7 Priority Support', 'Advanced Analytics'], 
     buttonText: 'Get Started', 
     highlight: true 
   },
@@ -37,8 +37,8 @@ export const PRICING_PLANS = [
     id: 'pro', 
     name: 'Power Enterprise', 
     prices: { USD: 15.56, INR: 1299, EUR: 14.32, GBP: 12.14 },
-    tokens: 125, 
-    features: ['125 AI Credits', '125 Charts OR 25 HD Headshots, 75 Preview Headshots', 'Batch Upload (Soon)', 'Custom Integration Support', 'Team Access'], 
+    tokens: 180, 
+    features: ['180 AI Credits', '180 Charts OR 36 HD Headshots, 100 Preview Headshots', 'Batch Upload (Soon)', 'Custom Integration Support', 'Team Access'], 
     buttonText: 'Go Pro', 
     highlight: false 
   }
