@@ -8,49 +8,28 @@ import {
 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { cn } from '../lib/utils';
+import { APPS_COLLECTION, MASTER_PLATFORM_CONFIG } from '../constants/apps';
 import { TransactionHistory } from './TransactionHistory';
 import { RecentAssets } from './RecentAssets';
+import { UserMenu } from './UserMenu';
+
+import { AppEntry, PlatformConfig } from '../services/ecosystemService';
 
 interface MasterDashboardProps {
   user: any;
   onBackToLanding?: () => void;
   onAdminClick?: () => void;
+  platformConfig?: PlatformConfig | null;
+  dynamicApps?: AppEntry[];
 }
 
-const tools = [
-  {
-    id: 'graph',
-    title: "GraphToSheets",
-    description: "Transform chart images into editable Excel spreadsheets.",
-    icon: Layers,
-    url: "https://graphtosheets.aiwithshyam.com",
-    color: "from-emerald-500/20 to-emerald-500/5",
-    accent: "text-emerald-400",
-    status: "Active"
-  },
-  {
-    id: 'headshots',
-    title: "HeadshotStudioPro",
-    description: "Premium AI-generated professional headshots.",
-    icon: Cpu,
-    url: "https://headshotstudiopro.com",
-    color: "from-purple-500/20 to-purple-500/5",
-    accent: "text-purple-400",
-    status: "Active"
-  },
-  {
-    id: 'geonex',
-    title: "GeoNex",
-    description: "Advanced Geospatial AI for deep spatial analysis.",
-    icon: Maximize,
-    url: "https://geonex.aiwithshyam.com",
-    color: "from-amber-500/20 to-amber-500/5",
-    accent: "text-amber-400",
-    status: "Beta"
-  }
-];
-
-export const MasterDashboard: React.FC<MasterDashboardProps> = ({ user, onBackToLanding, onAdminClick }) => {
+export const MasterDashboard: React.FC<MasterDashboardProps> = ({ 
+  user, 
+  onBackToLanding, 
+  onAdminClick,
+  platformConfig,
+  dynamicApps = []
+}) => {
   const [profile, setProfile] = useState<any>(null);
   const [tokens, setTokens] = useState<number>(0);
   const [loadingTokens, setLoadingTokens] = useState(true);
@@ -162,6 +141,8 @@ export const MasterDashboard: React.FC<MasterDashboardProps> = ({ user, onBackTo
 
   if (!profile) return null;
 
+  const hubName = platformConfig?.hubName || MASTER_PLATFORM_CONFIG.hubName;
+
   const SidebarItem = ({ icon: Icon, label, active }: any) => (
     <div
       className={cn(
@@ -188,9 +169,13 @@ export const MasterDashboard: React.FC<MasterDashboardProps> = ({ user, onBackTo
           >
             <div className="flex flex-col">
               <div className="flex items-baseline gap-1">
-                <span className="font-display font-black text-xl tracking-tighter text-white group-hover:text-emerald-500 transition-colors">AI</span>
+                <span className="font-display font-black text-xl tracking-tighter text-white group-hover:text-emerald-500 transition-colors uppercase">
+                  {MASTER_PLATFORM_CONFIG.name.split('WITH')[0]}
+                </span>
                 <span className="font-display font-light text-xl tracking-tighter text-emerald-500/60 group-hover:text-emerald-400 transition-colors">WITH</span>
-                <span className="font-display font-black text-xl tracking-tighter text-white group-hover:text-emerald-500 transition-colors">SHYAM</span>
+                <span className="font-display font-black text-xl tracking-tighter text-white group-hover:text-emerald-500 transition-colors uppercase">
+                  {MASTER_PLATFORM_CONFIG.name.split('WITH')[1]}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="h-px flex-1 bg-white/10 group-hover:bg-emerald-500/30 transition-colors" />
@@ -200,7 +185,7 @@ export const MasterDashboard: React.FC<MasterDashboardProps> = ({ user, onBackTo
           </button>
 
           <nav className="space-y-1 flex-1">
-            <SidebarItem icon={LayoutDashboard} label="Main Suite" active />
+            <SidebarItem icon={LayoutDashboard} label={hubName} active />
             
             {isAdmin && onAdminClick && (
                <button
@@ -240,23 +225,21 @@ export const MasterDashboard: React.FC<MasterDashboardProps> = ({ user, onBackTo
           <header className="flex items-center justify-between mb-12">
             <div>
               <h1 className="text-xl font-display font-bold text-white mb-0.5 tracking-tight">
-                Master Command Center
+                {hubName}
               </h1>
               <p className="text-gray-600 text-[10px] font-mono uppercase tracking-widest">
-                {profile.name.split(' ')[0]}'s Private Ecosystem
+                {profile.name.split(' ')[0]}'s Central Infrastructure
               </p>
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3 pl-6 border-l border-white/10">
-                <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-emerald-400 border border-white/10">
-                  <User size={16} />
-                </div>
-                <div className="hidden lg:block">
-                  <p className="text-xs font-bold text-white leading-none">{profile.name}</p>
-                </div>
-              </div>
-            </div>
+            <UserMenu 
+              user={user} 
+              onSignOut={() => supabase.auth.signOut()}
+              onDashboardClick={onBackToLanding}
+              onAdminClick={onAdminClick}
+              isAdmin={isAdmin}
+              variant="dashboard"
+            />
           </header>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
