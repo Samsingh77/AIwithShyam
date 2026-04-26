@@ -53,7 +53,7 @@ export const APPS_COLLECTION: AppConfig[] = [
     slug: "geonexuspro",
     description: "Advanced Geospatial AI for deep spatial analysis.",
     icon: Maximize,
-    url: "https://www.geonexuspro.aiwithshyam.com/",
+    url: "https://geonex.aiwithshyam.com",
     color: "from-amber-500/20 to-amber-500/5",
     accent: "text-amber-400",
     status: "Beta",
