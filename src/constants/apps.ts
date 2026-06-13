@@ -73,7 +73,7 @@ export const APPS_COLLECTION: AppConfig[] = [
     id: 'headshots',
     title: "Headshot Studio",
     slug: "headshot-studio-pro",
-    description: "Take a selfie or upload any simple image to instantly convert it into a studio-grade professional business photograph with endless customizations.",
+    description: "Take a selfie or upload an image to convert it into a studio-grade professional business photograph with endless customizations.",
     icon: Camera,
     url: "https://headshotstudiopro.com/",
     color: "bg-white",
@@ -88,10 +88,10 @@ export const APPS_COLLECTION: AppConfig[] = [
     slug: "ai-design-toolkit",
     description: "An advanced, comprehensive desktop AI toolkit for pixel-accurate image enhancement, creative asset modernizations, and batch generation.",
     icon: Sliders,
-    url: "https://aidesigntoolkit.vercel.app/",
+    url: "#", // Changed to '#' as per Coming Soon status request
     color: "bg-white",
     accent: "text-purple-500",
-    status: "Active",
+    status: "Coming Soon", // Changed to Coming Soon as per user request
     category: "Creative",
     version: "V1.0"
   },
@@ -114,10 +114,10 @@ export const APPS_COLLECTION: AppConfig[] = [
     slug: "dtp-compare",
     description: "Automate desktop publishing layout auditing, high-fidelity pixel-comparisons, and real-time visual system diff detection.",
     icon: Columns,
-    url: "https://dtpcompare.vercel.app/",
+    url: "#", // Changed to '#' as per Coming Soon status request
     color: "bg-white",
     accent: "text-emerald-500",
-    status: "Active",
+    status: "Coming Soon", // Changed to Coming Soon as per user request
     category: "Analysis",
     version: "V1.0"
   },
@@ -127,10 +127,10 @@ export const APPS_COLLECTION: AppConfig[] = [
     slug: "ai-pdf-redact",
     description: "Accelerate compliance workflows through automated, AI-powered high-risk sensitive data discovery and irreversible PDF redactions.",
     icon: ShieldAlert,
-    url: "https://airedacttool.vercel.app/",
+    url: "#", // Changed to '#' as per Coming Soon status request
     color: "bg-white",
     accent: "text-red-500",
-    status: "Active",
+    status: "Coming Soon", // Changed to Coming Soon as per user request
     category: "Productivity",
     version: "V1.0"
   },
@@ -140,10 +140,10 @@ export const APPS_COLLECTION: AppConfig[] = [
     slug: "logovision-ai",
     description: "Advanced deep neural rendering pipelines designed for brand safety audits, asset placement detection, and fully automated layout styling.",
     icon: Sparkles,
-    url: "https://evs-imagelab.vercel.app/",
+    url: "#", // Changed to '#' as per Coming Soon status request
     color: "bg-white",
     accent: "text-emerald-500",
-    status: "Active",
+    status: "Coming Soon", // Changed to Coming Soon as per user request
     category: "Creative",
     version: "V2.0"
   },
