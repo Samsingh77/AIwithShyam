@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Zap, FileText, User, ShieldCheck, Target } from 'lucide-react';
+import { Zap, FileText, User, ShieldCheck, Target, Map } from 'lucide-react';
 import { PRICING_PLANS, CURRENCIES } from '../constants';
 import { cn } from '../lib/utils';
 
@@ -47,6 +47,21 @@ export const Pricing: React.FC<PricingProps> = ({ user, onAuthClick, onPurchase 
         return '400 sets of generation';
       default:
         return '1 generation';
+    }
+  };
+
+  const getGeoNexusValue = (planId: string) => {
+    switch (planId) {
+      case 'free':
+        return '1 Map Plotting';
+      case 'starter':
+        return '60 Map Plottings';
+      case 'standard':
+        return '300 Map Plottings';
+      case 'pro':
+        return '800 Map Plottings';
+      default:
+        return '1 Map Plotting';
     }
   };
 
@@ -193,6 +208,28 @@ export const Pricing: React.FC<PricingProps> = ({ user, onAuthClick, onPurchase 
                       <td key={plan.id} className="p-4 text-center">
                         <span className="text-sm font-bold text-gray-700">
                           {getLogoInsightValue(plan.id)}
+                        </span>
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="border-b border-gray-100 group hover:bg-gray-50/50 transition-colors">
+                    <td className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-1.5 bg-[#fffbeb] rounded-xl text-amber-600 flex items-center justify-center">
+                          <Map size={16} />
+                        </div>
+                        <div className="flex flex-col text-left">
+                          <span className="text-sm font-bold text-gray-700 leading-tight">GeoNexus</span>
+                          <span className="text-[9px] font-mono font-bold tracking-widest text-gray-400 uppercase mt-0.5 leading-none">
+                            MAP PLOTTINGS
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+                    {PRICING_PLANS.map(plan => (
+                      <td key={plan.id} className="p-4 text-center">
+                        <span className="text-sm font-bold text-gray-700">
+                          {getGeoNexusValue(plan.id)}
                         </span>
                       </td>
                     ))}
