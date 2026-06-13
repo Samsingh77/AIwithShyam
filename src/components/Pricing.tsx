@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Zap, FileText, User, ShieldCheck } from 'lucide-react';
+import { Zap, FileText, User, ShieldCheck, Target } from 'lucide-react';
 import { PRICING_PLANS, CURRENCIES } from '../constants';
 import { cn } from '../lib/utils';
 
@@ -33,6 +33,21 @@ export const Pricing: React.FC<PricingProps> = ({ user, onAuthClick, onPurchase 
         </span>
       </div>
     );
+  };
+
+  const getLogoInsightValue = (planId: string) => {
+    switch (planId) {
+      case 'free':
+        return '1 generation';
+      case 'starter':
+        return '40 sets of generation';
+      case 'standard':
+        return '150 sets of generation';
+      case 'pro':
+        return '400 sets of generation';
+      default:
+        return '1 generation';
+    }
   };
 
   return (
@@ -157,6 +172,28 @@ export const Pricing: React.FC<PricingProps> = ({ user, onAuthClick, onPurchase 
                     {PRICING_PLANS.map(plan => (
                       <td key={plan.id} className="p-4 text-center">
                         {formatHeadshots(plan.tokens)}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="border-b border-gray-100 group hover:bg-gray-50/50 transition-colors">
+                    <td className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-1.5 bg-[#ecfdf5] rounded-xl text-emerald-600 flex items-center justify-center">
+                          <Target size={16} />
+                        </div>
+                        <div className="flex flex-col text-left">
+                          <span className="text-sm font-bold text-gray-700 leading-tight">Logo Insight Engine</span>
+                          <span className="text-[9px] font-mono font-bold tracking-widest text-gray-400 uppercase mt-0.5 leading-none">
+                            TARGET RUNS
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+                    {PRICING_PLANS.map(plan => (
+                      <td key={plan.id} className="p-4 text-center">
+                        <span className="text-sm font-bold text-gray-700">
+                          {getLogoInsightValue(plan.id)}
+                        </span>
                       </td>
                     ))}
                   </tr>

@@ -5,7 +5,7 @@ import {
   Coins, ArrowLeft, RefreshCw, AlertCircle,
   CheckCircle2, Filter, Trash2, Ban
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase, safeGetSession, handleAuthError } from '../lib/supabase';
 import { cn } from '../lib/utils';
 
 interface UserProfile {
@@ -30,7 +30,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session, error: sessionError } = await safeGetSession();
+      if (sessionError) throw sessionError;
       if (!session) throw new Error("No active session");
 
       const response = await fetch('/api/admin/users', {
@@ -48,7 +49,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
       setUsers(data || []);
     } catch (err: any) {
       console.error("Failed to fetch users:", err);
-      setMessage({ type: 'error', text: `Failed to fetch users: ${err.message}` });
+      if (!handleAuthError(err)) {
+        setMessage({ type: 'error', text: `Failed to fetch users: ${err.message}` });
+      }
     } finally {
       setLoading(false);
     }
@@ -61,7 +64,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
   const handleUpdateTokens = async (userId: string, currentTokens: number, delta: number) => {
     setUpdatingId(userId);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session, error: sessionError } = await safeGetSession();
+      if (sessionError) throw sessionError;
       if (!session) throw new Error("No active session");
 
       const response = await fetch('/api/admin/update-tokens', {
@@ -83,7 +87,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
       setUsers(users.map(u => u.id === userId ? { ...u, tokens: newTokens } : u));
       setMessage({ type: 'success', text: `Updated tokens for user.` });
     } catch (err: any) {
-      setMessage({ type: 'error', text: err.message });
+      if (!handleAuthError(err)) {
+        setMessage({ type: 'error', text: err.message });
+      }
     } finally {
       setUpdatingId(null);
     }
@@ -92,7 +98,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
   const handleToggleBlock = async (userId: string, currentStatus: boolean) => {
     setUpdatingId(userId);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session, error: sessionError } = await safeGetSession();
+      if (sessionError) throw sessionError;
       if (!session) throw new Error("No active session");
 
       const response = await fetch('/api/admin/toggle-block', {
@@ -112,7 +119,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
       setUsers(users.map(u => u.id === userId ? { ...u, is_blocked: !currentStatus } : u));
       setMessage({ type: 'success', text: `User ${!currentStatus ? 'blocked' : 'unblocked'} successfully.` });
     } catch (err: any) {
-      setMessage({ type: 'error', text: err.message });
+      if (!handleAuthError(err)) {
+        setMessage({ type: 'error', text: err.message });
+      }
     } finally {
       setUpdatingId(null);
     }

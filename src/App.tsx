@@ -15,10 +15,11 @@ import {
   Maximize, 
   ChevronRight,
   Mail,
-  User
+  User,
+  Plus
 } from "lucide-react";
-import { useRef, MouseEvent, useState, useEffect } from "react";
-import { supabase, isSupabaseConfigured } from "./lib/supabase";
+import React, { useRef, MouseEvent, useState, useEffect } from "react";
+import { supabase, isSupabaseConfigured, safeGetSession, handleAuthError } from "./lib/supabase";
 import { APPS_COLLECTION, MASTER_PLATFORM_CONFIG } from "./constants/apps";
 import { AuthForm } from "./components/AuthForm";
 import { MasterDashboard } from "./components/MasterDashboard";
@@ -167,59 +168,213 @@ const Hero = () => {
   );
 };
 
-const ProductCard = ({ title, description, icon: Icon, link, index, isComingSoon }: any) => {
+const ProductCard = ({ title, description, icon: Icon, link, index, status, version, onProposeClick }: any) => {
+  // Active Standard cards (White background, light shadow)
+  if (status === 'Active') {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ delay: index * 0.05, duration: 0.5 }}
+        className="group relative bg-white p-6 rounded-[1.5rem] flex flex-col justify-between h-[280px] border border-gray-100 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:shadow-gray-200/50 text-gray-900 text-left"
+      >
+        <div>
+          <div className="flex justify-between items-start mb-4">
+            <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-gray-500 group-hover:bg-[#10b981] group-hover:text-white transition-all duration-300 transform group-hover:scale-105">
+              <Icon size={20} />
+            </div>
+            {version && (
+              <span className="px-2 py-0.5 rounded-full bg-gray-50 border border-gray-100 text-[9px] font-mono font-bold tracking-widest text-gray-400 uppercase">
+                {version}
+              </span>
+            )}
+          </div>
+          
+          <h3 className="font-display font-bold text-[17px] leading-tight tracking-tight mb-2 transition-colors duration-300 group-hover:text-[#10b981]">{title}</h3>
+          <p className="text-gray-500 text-[13px] leading-relaxed">
+            {description}
+          </p>
+        </div>
+
+        <div className="mt-4">
+          <a
+            href={link}
+            target={link !== '#' ? "_blank" : undefined}
+            rel="noopener noreferrer"
+            onClick={(e) => link === '#' && e.preventDefault()}
+            className="w-full inline-flex items-center justify-center py-2.5 bg-[#f3f4f6] text-gray-600 text-[11px] font-mono font-bold uppercase tracking-widest rounded-xl transition-all duration-300 border border-transparent group-hover:bg-[#10b981]/10 group-hover:text-[#10b981] group-hover:border-[#10b981]/30 hover:!bg-[#10b981] hover:!text-white hover:shadow-lg hover:shadow-[#10b981]/25"
+          >
+            Launch System
+          </a>
+        </div>
+      </motion.div>
+    );
+  }
+
+  // Coming Soon cards (Dashed/Dotted grey border, centered content)
+  if (status === 'Coming Soon') {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ delay: index * 0.05, duration: 0.5 }}
+        className="relative bg-[#f9fbfd]/70 border-2 border-dashed border-gray-300/80 p-6 rounded-[1.5rem] flex flex-col items-center justify-center text-center h-[280px] text-gray-900 transition-all duration-300 hover:bg-[#f5f8fc]"
+      >
+        <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 mb-4 border border-gray-100">
+          <Icon size={20} />
+        </div>
+        
+        <h3 className="font-display font-black text-xs tracking-[0.2em] text-gray-400 uppercase mb-2">{title}</h3>
+        <p className="text-gray-400 text-[12px] leading-relaxed mb-6 font-medium max-w-[170px]">
+          {description}
+        </p>
+        
+        <span className="px-4 py-1 rounded-full bg-gray-200/60 text-[9px] font-mono font-bold uppercase tracking-widest text-gray-500 border border-gray-300/40">
+          Coming Soon
+        </span>
+      </motion.div>
+    );
+  }
+
+  // Suggest Card (SUGGEST MODULE) (Dashed/Dotted emerald border, pulse green circle)
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ delay: index * 0.1, duration: 0.5 }}
-      className="group relative bg-brand-gray/30 border border-white/5 p-6 rounded-2xl hover:bg-brand-gray/50 transition-all duration-500 overflow-hidden"
+      transition={{ delay: index * 0.05, duration: 0.5 }}
+      className="relative bg-[#ecfdf5]/50 border-2 border-dashed border-emerald-300 p-6 rounded-[1.5rem] flex flex-col items-center justify-center text-center h-[280px] text-gray-900 transition-all duration-300 hover:bg-[#d1fae5]/60"
     >
-      <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-700">
-        <Icon size={80} />
+      <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-emerald-500 mb-4 border-2 border-emerald-400 animate-pulse">
+        <Plus size={20} strokeWidth={3} />
       </div>
       
-      <div className="relative z-10">
-        <div className="w-10 h-10 bg-brand-accent/10 rounded-lg flex items-center justify-center mb-4 text-brand-accent group-hover:bg-brand-accent group-hover:text-brand-black transition-colors duration-500">
-          <Icon size={20} />
-        </div>
-        <div className="flex items-center gap-3 mb-2">
-          <h3 className="font-display font-bold text-lg tracking-tight">{title}</h3>
-          {isComingSoon && (
-            <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[8px] font-mono uppercase tracking-widest text-gray-500">
-              Soon
-            </span>
-          )}
-        </div>
-        <p className="text-gray-400 text-xs leading-relaxed mb-6 max-w-[240px]">
-          {description}
-        </p>
-        {isComingSoon ? (
-          <div className="inline-flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-gray-600 cursor-not-allowed">
-            Development Phase
-          </div>
-        ) : (
-          <a 
-            href={link} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-brand-accent hover:gap-4 transition-all duration-300"
-          >
-            Launch App <ArrowRight size={12} />
-          </a>
-        )}
-      </div>
+      <h3 className="font-display font-black text-xs tracking-[0.15em] text-emerald-700 uppercase mb-2">{title}</h3>
+      <p className="text-gray-500 text-[12px] leading-relaxed mb-6 font-medium max-w-[170px]">
+        {description}
+      </p>
+      
+      <button
+        onClick={onProposeClick}
+        className="w-full inline-flex items-center justify-center py-2.5 bg-[#e6fbf2] hover:bg-[#d1fae5] border border-emerald-200 text-emerald-700 hover:text-emerald-800 font-bold uppercase rounded-xl text-[10px] tracking-widest font-mono transition-all"
+      >
+        Propose Feature
+      </button>
     </motion.div>
   );
 };
 
-const AISuite = () => {
+const SuggestModal = ({ onClose }: { onClose: () => void }) => {
+  const [appName, setAppName] = useState('');
+  const [description, setDescription] = useState('');
+  const [success, setSuccess] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!appName || !description) return;
+    
+    const proposals = JSON.parse(localStorage.getItem('theme_proposals') || '[]');
+    proposals.push({ appName, description, timestamp: new Date().toISOString() });
+    localStorage.setItem('theme_proposals', JSON.stringify(proposals));
+    
+    setSuccess(true);
+    setTimeout(() => {
+      onClose();
+    }, 2500);
+  };
+
   return (
-    <section id="ai-suite" className="py-32 px-6 max-w-7xl mx-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/85 backdrop-blur-md">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="w-full max-w-md bg-white border border-gray-100 rounded-[2.5rem] p-8 text-gray-900 shadow-2xl relative overflow-hidden"
+      >
+        <div className="absolute top-0 right-0 p-8 text-[120px] font-black text-emerald-100/10 select-none pointer-events-none rotate-12">
+          DTP
+        </div>
+        
+        <button 
+          onClick={onClose}
+          className="absolute top-6 right-6 text-gray-400 hover:text-gray-950 transition-colors bg-gray-50 hover:bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center font-bold text-lg"
+        >
+          ×
+        </button>
+
+        {success ? (
+          <div className="text-center py-8">
+            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 border border-emerald-200">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h4 className="text-xl font-display font-bold text-gray-900 mb-2">Proposal Submitted!</h4>
+            <p className="text-gray-500 text-xs">
+              Thank you for shaping the future. Shyam will evaluate your module idea soon!
+            </p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="text-left">
+              <span className="text-[9px] font-mono font-bold tracking-widest text-emerald-700 uppercase bg-emerald-100/50 px-3 py-1 rounded-full border border-emerald-200">
+                Co-Creation Panel
+              </span>
+              <h4 className="text-2xl font-display font-bold text-gray-900 mt-3 mb-1">Propose New Feature</h4>
+              <p className="text-gray-500 text-[11px] leading-relaxed">
+                Shape the precision roadmap for upcoming layout and typesetting automation engines.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Module Name</label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="e.g., FontScribe AI"
+                  value={appName}
+                  onChange={(e) => setAppName(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-emerald-400 outline-none transition-all placeholder:text-gray-300"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Purpose / Description</label>
+                <textarea 
+                  required
+                  rows={3}
+                  placeholder="Describe its capabilities for precision DTP instrumentation..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-emerald-400 outline-none transition-all placeholder:text-gray-300 resize-none"
+                />
+              </div>
+            </div>
+
+            <button 
+              type="submit"
+              className="w-full bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg hover:shadow-emerald-500/20 text-xs uppercase tracking-widest font-mono"
+            >
+              Submit Proposal
+            </button>
+          </form>
+        )}
+      </motion.div>
+    </div>
+  );
+};
+
+const AISuite = () => {
+  const [isSuggestOpen, setIsSuggestOpen] = useState(false);
+
+  return (
+    <section id="ai-suite" className="py-32 px-6 max-w-[1500px] mx-auto text-left">
       <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
         <div className="max-w-xl">
-          <span className="font-mono text-xs uppercase tracking-widest text-brand-accent mb-4 block">The AI Suite</span>
+          <span className="font-mono text-xs uppercase tracking-widest text-emerald-400 mb-4 block">The AI Suite</span>
           <h2 className="font-display font-bold text-5xl md:text-6xl tracking-tighter uppercase leading-none">
             Digital <br /> Intelligence.
           </h2>
@@ -229,19 +384,49 @@ const AISuite = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {APPS_COLLECTION.map((app, i) => (
-          <ProductCard 
-            key={app.id} 
-            title={app.title} 
-            description={app.description} 
-            icon={app.icon} 
-            link={app.url} 
-            index={i} 
-            isComingSoon={app.status === 'Coming Soon'} 
-          />
-        ))}
+      {/* Embedded Live Dashboard Emulator mimicking the screenshot perfectly */}
+      <div className="bg-[#f3f4f6]/95 rounded-[3.5rem] p-6 md:p-12 border border-white/5 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.6)]">
+        {/* Header decoration of the emulator */}
+        <div className="flex justify-between items-center mb-10 border-b border-gray-200 pb-6">
+          <div className="flex items-center gap-3">
+            <div className="flex gap-1.5">
+              <span className="w-3 h-3 rounded-full bg-red-400 block" />
+              <span className="w-3 h-3 rounded-full bg-amber-400 block" />
+              <span className="w-3 h-3 rounded-full bg-emerald-400 block" />
+            </div>
+            <div className="w-px h-4 bg-gray-300 mx-1" />
+            <span className="text-[10px] font-mono font-bold tracking-widest text-gray-400 uppercase">Interactive Live Hub</span>
+          </div>
+          <div className="px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold tracking-widest font-mono uppercase flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse block" />
+            Ecosystem Active
+          </div>
+        </div>
+
+        {/* 5 column responsive grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          {APPS_COLLECTION.map((app, i) => (
+            <ProductCard 
+              key={app.id} 
+              title={app.title} 
+              description={app.description} 
+              icon={app.icon} 
+              link={app.url} 
+              index={i} 
+              status={app.status}
+              version={app.version}
+              onProposeClick={() => setIsSuggestOpen(true)}
+            />
+          ))}
+        </div>
       </div>
+      
+      {/* Suggest Feature Propose Modal */}
+      <AnimatePresence>
+        {isSuggestOpen && (
+          <SuggestModal onClose={() => setIsSuggestOpen(false)} />
+        )}
+      </AnimatePresence>
     </section>
   );
 };
@@ -459,13 +644,10 @@ export default function App() {
     }
 
     // Check initial session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
+    safeGetSession().then(({ session, error }) => {
       if (error) {
         console.error("Supabase session check failed:", error.message);
-        // If there's an error like "Refresh Token Not Found", force a sign out to clear stale local storage
-        if (error.message.toLowerCase().includes('refresh token')) {
-          supabase.auth.signOut();
-        }
+        handleAuthError(error);
       }
       setUser(session?.user ?? null);
       setLoading(false);

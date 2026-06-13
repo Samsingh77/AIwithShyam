@@ -6,7 +6,7 @@ import {
   History, LayoutDashboard, Grid, Image as ImageIcon,
   LogOut, ChevronRight, Activity
 } from 'lucide-react';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { supabase, isSupabaseConfigured, handleAuthError } from '../lib/supabase';
 import { cn } from '../lib/utils';
 import { APPS_COLLECTION, MASTER_PLATFORM_CONFIG } from '../constants/apps';
 import { TransactionHistory } from './TransactionHistory';
@@ -133,7 +133,9 @@ export const MasterDashboard: React.FC<MasterDashboardProps> = ({
       
       alert("Profile updated successfully!");
     } catch (err: any) {
-      alert("Failed to update profile: " + err.message);
+      if (!handleAuthError(err)) {
+        alert("Failed to update profile: " + err.message);
+      }
     } finally {
       setIsUpdatingProfile(false);
     }
