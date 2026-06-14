@@ -101,7 +101,7 @@ export const APPS_COLLECTION: AppConfig[] = [
     slug: "geonexuspro",
     description: "High-fidelity geospatial vector mapping and automated spatial data visualization custom-built for modern architectural layout planning.",
     icon: Map,
-    url: "https://www.geonexuspro.aiwithshyam.com/",
+    url: "https://mygeonexus.vercel.app/",
     color: "bg-white",
     accent: "text-amber-500",
     status: "Active",
