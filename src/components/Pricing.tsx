@@ -57,9 +57,9 @@ export const Pricing: React.FC<PricingProps> = ({ user, onAuthClick, onPurchase 
       case 'starter':
         return '60 Map Plottings';
       case 'standard':
-        return '300 Map Plottings';
+        return '250 Map Plottings';
       case 'pro':
-        return '800 Map Plottings';
+        return '500 Map Plottings';
       default:
         return '1 Map Plotting';
     }
