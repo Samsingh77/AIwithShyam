@@ -16,7 +16,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
   try {
-    const { amount, currency = "INR" } = req.body;
+    const { amount, currency = "INR", userId, planId, tokens } = req.body;
     if (!amount || amount <= 0) return res.status(400).json({ error: "Invalid amount" });
 
     // Lazy load to prevent top-level ESM/bundling issues
@@ -32,6 +32,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       amount: Math.round(amount * 100),
       currency: currency.toUpperCase(),
       receipt: `receipt_${Date.now()}`,
+      notes: {
+        userId: userId || "",
+        planId: planId || "",
+        tokens: String(tokens || 0)
+      }
     };
 
     const order = await rzp.orders.create(options);

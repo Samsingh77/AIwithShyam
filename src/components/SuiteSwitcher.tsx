@@ -25,11 +25,11 @@ export const SuiteSwitcher: React.FC<SuiteSwitcherProps> = ({
   const baseApps = dynamicApps.length > 0 
     ? dynamicApps.map(app => ({
         id: app.id,
-        title: app.title,
+        title: app.title || (app as any).name || '',
         description: app.description,
-        icon: ICON_MAP[app.icon_name] || LayoutGrid,
+        icon: ICON_MAP[app.icon_name] || ICON_MAP[(app as any).icon] || LayoutGrid,
         url: app.url,
-        accent: app.accent_color
+        accent: app.accent_color || (app as any).color || 'text-emerald-400'
       }))
     : APPS_COLLECTION;
 

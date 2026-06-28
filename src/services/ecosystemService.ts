@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { LayoutGrid, ImageIcon, Layers, Cpu, Maximize, Activity, Box, Globe, Zap, Shield, FileText } from 'lucide-react';
+import { LayoutGrid, ImageIcon, Layers, Cpu, Maximize, Activity, Box, Globe, Zap, Shield, FileText, Table, User as UserIcon, Sparkles } from 'lucide-react';
 
 // Map icon names from DB to Lucide components
 export const ICON_MAP: Record<string, any> = {
@@ -13,7 +13,11 @@ export const ICON_MAP: Record<string, any> = {
   'Globe': Globe,
   'Zap': Zap,
   'Shield': Shield,
-  'FileText': FileText
+  'FileText': FileText,
+  // suite-config.json mappings
+  'spreadsheet': Table,
+  'user': UserIcon,
+  'sparkles': Sparkles
 };
 
 export interface AppEntry {
@@ -60,6 +64,20 @@ export const ecosystemService = {
 
   async fetchApps(): Promise<AppEntry[]> {
     try {
+      // 1. Try fetching via our ecosystem apps proxy endpoint
+      const response = await fetch('/api/ecosystem-apps');
+      if (response.ok) {
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          return data;
+        }
+      }
+    } catch (apiErr) {
+      console.warn("Proxy /api/ecosystem-apps query failed, falling back to Supabase direct registry fetch:", apiErr);
+    }
+
+    try {
+      // 2. Fallback to Supabase apps_registry
       const { data, error } = await supabase
         .from('apps_registry')
         .select('*')

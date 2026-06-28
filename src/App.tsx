@@ -694,7 +694,10 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           amount: plan.prices[currency],
-          currency: currency
+          currency: currency,
+          userId: user.id,
+          planId: plan.id,
+          tokens: plan.tokens
         }),
       });
 
@@ -739,6 +742,28 @@ export default function App() {
           const verifyData = await verifyResponse.json();
 
           if (verifyData.success) {
+            // Check if the purchase is already logged (allocated by webhook)
+            const { data: existingPurchase } = await supabase
+              .from('purchase_history')
+              .select('id')
+              .eq('payment_id', response.razorpay_payment_id)
+              .maybeSingle();
+
+            if (existingPurchase) {
+              alert("Payment Successful! Your tokens have been credited.");
+              return;
+            }
+
+            // Insert purchase history first (this secures idempotency on client side as well)
+            await supabase
+              .from('purchase_history')
+              .insert([{
+                user_id: user.id,
+                amount: plan.prices[currency],
+                status: 'success',
+                payment_id: response.razorpay_payment_id
+              }]);
+
             // 4. Update Tokens in Supabase
             const { data: profile } = await supabase
               .from('profiles')
@@ -764,7 +789,7 @@ export default function App() {
                 description: `${plan.name} Purchase`,
                 metadata: { 
                   plan_id: plan.id, 
-                  price: plan.price,
+                  price: plan.prices[currency],
                   razorpay_payment_id: response.razorpay_payment_id 
                 }
               }]);

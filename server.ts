@@ -4,6 +4,7 @@ import { fileURLToPath } from "url";
 import crypto from "crypto";
 import dotenv from "dotenv";
 import cors from "cors";
+import fs from "fs";
 import { createClient } from "@supabase/supabase-js";
 
 // 1. Initial configuration
@@ -112,7 +113,7 @@ app.get("/api/health", (req, res) => {
 app.post("/api/create-order", async (req, res) => {
   console.log("Received order request:", req.body);
   try {
-    const { amount, currency = "INR" } = req.body;
+    const { amount, currency = "INR", userId, planId, tokens } = req.body;
     
     if (!amount || amount <= 0) {
       return res.status(400).json({ error: "Amount must be > 0" });
@@ -123,6 +124,11 @@ app.post("/api/create-order", async (req, res) => {
       amount: Math.round(amount * 100),
       currency: currency.toUpperCase(),
       receipt: `receipt_${Date.now()}`,
+      notes: {
+        userId: userId || "",
+        planId: planId || "",
+        tokens: String(tokens || 0)
+      }
     };
 
     const order = await rzp.orders.create(options);
@@ -224,6 +230,163 @@ app.post("/api/admin/toggle-block", verifyAdmin, async (req, res) => {
     res.json({ success: true });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// Razorpay Webhook Endpoint
+app.post("/api/payment/webhook", async (req, res) => {
+  try {
+    const signature = req.headers['x-razorpay-signature'] as string;
+    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET || '';
+
+    // Verify webhook signature if secret exists
+    if (webhookSecret && signature) {
+      const shasum = crypto.createHmac('sha256', webhookSecret);
+      shasum.update(typeof req.body === 'string' ? req.body : JSON.stringify(req.body));
+      const digest = shasum.digest('hex');
+      if (digest !== signature) {
+        return res.status(400).json({ error: 'Invalid webhook signature' });
+      }
+    }
+
+    const { event, payload } = req.body;
+    console.log(`Received Webhook Event (Express): ${event}`);
+
+    if (event === 'payment.captured' || event === 'order.paid') {
+      const payment = payload?.payment?.entity;
+      if (!payment) {
+        return res.status(400).json({ error: 'No payment entity' });
+      }
+
+      const paymentId = payment.id;
+      const amount = payment.amount / 100;
+      
+      const notes = payment.notes || {};
+      const userId = notes.userId || notes.user_id;
+      const tokens = parseInt(notes.tokens || notes.amount_tokens || '0', 10);
+      const planId = notes.planId || notes.plan_id || '';
+
+      if (!userId || !tokens) {
+        console.log(`No userId or tokens found in notes for payment ${paymentId}. Skipping allocation.`);
+        return res.status(200).json({ status: 'ignored', reason: 'Missing userId or tokens' });
+      }
+
+      const supabaseAdmin = getSupabaseAdmin();
+
+      // Check for Idempotency
+      const { data: existingPurchase } = await supabaseAdmin
+        .from('purchase_history')
+        .select('id')
+        .eq('payment_id', paymentId)
+        .maybeSingle();
+
+      if (existingPurchase) {
+        console.log(`Payment ${paymentId} already processed (Express). Skipping.`);
+        return res.status(200).json({ status: 'ignored', reason: 'Payment already processed' });
+      }
+
+      // 1. Get current profile to update tokens
+      const { data: profile, error: profileError } = await supabaseAdmin
+        .from('profiles')
+        .select('tokens')
+        .eq('id', userId)
+        .single();
+
+      if (profileError) {
+        console.error(`Error loading profile for user ${userId}:`, profileError);
+        return res.status(400).json({ error: 'Profile not found' });
+      }
+
+      const currentTokens = profile?.tokens || 0;
+      const newTokens = currentTokens + tokens;
+
+      // 2. Update profiles table
+      const { error: updateError } = await supabaseAdmin
+        .from('profiles')
+        .update({ tokens: newTokens })
+        .eq('id', userId);
+
+      if (updateError) {
+        console.error(`Error updating tokens for user ${userId}:`, updateError);
+        throw updateError;
+      }
+
+      // 3. Log purchase history
+      await supabaseAdmin
+        .from('purchase_history')
+        .insert([{
+          user_id: userId,
+          amount: amount,
+          status: 'success',
+          payment_id: paymentId
+        }]);
+
+      // 4. Log token transaction
+      await supabaseAdmin
+        .from('token_transactions')
+        .insert([{
+          user_id: userId,
+          amount: tokens,
+          type: 'purchase',
+          description: `Credit Purchase via Webhook`,
+          metadata: { 
+            plan_id: planId, 
+            price: amount,
+            razorpay_payment_id: paymentId,
+            via_webhook: true
+          }
+        }]);
+
+      console.log(`Successfully allocated ${tokens} tokens to user ${userId} via Express webhook.`);
+      return res.status(200).json({ success: true, allocated: tokens });
+    }
+
+    return res.status(200).json({ status: 'ignored', event });
+  } catch (error: any) {
+    console.error('Webhook processing exception (Express):', error);
+    return res.status(500).json({ error: 'Webhook processing failed', details: error.message });
+  }
+});
+
+// Proxy for cross-app ecosystem sister app list
+app.get("/api/ecosystem-apps", async (req, res) => {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+    try {
+      const response = await fetch('https://aiwithshyam.com/suite-config.json', {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const contentType = response.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+          try {
+            const data = await response.json();
+            return res.json(data);
+          } catch (jsonErr) {
+            console.warn("Express: Failed to parse remote suite-config.json as JSON, falling back:", jsonErr);
+          }
+        } else {
+          console.warn("Express: Remote suite-config.json returned non-JSON content type:", contentType);
+        }
+      }
+    } catch (e) {
+      console.warn("Express: Failed to fetch suite-config.json from production, falling back to local file:", e);
+    }
+
+    // Local file fallback
+    const localPath = path.join(process.cwd(), 'suite-config.json');
+    if (fs.existsSync(localPath)) {
+      const content = fs.readFileSync(localPath, 'utf-8');
+      return res.json(JSON.parse(content));
+    }
+
+    res.status(404).json({ error: "Suite config not found" });
+  } catch (error: any) {
+    res.status(500).json({ error: "Failed to load ecosystem apps", details: error.message });
   }
 });
 

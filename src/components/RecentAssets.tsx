@@ -6,11 +6,12 @@ import { cn } from '../lib/utils';
 
 interface Asset {
   id: string;
-  url: string;
-  type: string;
-  app_id: string;
+  url?: string;
+  image_data?: string;
+  type?: string;
+  app_id?: string;
   created_at: string;
-  metadata: any;
+  metadata?: any;
 }
 
 export const RecentAssets: React.FC<{ userId: string }> = ({ userId }) => {
@@ -18,36 +19,54 @@ export const RecentAssets: React.FC<{ userId: string }> = ({ userId }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let activeTable = 'generations';
+    let channel: any = null;
+
     const fetchAssets = async () => {
-      // Assuming a table named 'generated_assets' exists
       const { data, error } = await supabase
-        .from('generated_assets')
+        .from('generations')
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
-      if (!error && data) {
+      if (error) {
+        console.warn("Could not fetch from 'generations' table, falling back to 'generated_assets':", error.message);
+        activeTable = 'generated_assets';
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('generated_assets')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false });
+        if (!fallbackError && fallbackData) {
+          setAssets(fallbackData);
+        }
+      } else if (data) {
         setAssets(data);
       }
       setLoading(false);
+      setupSubscription(activeTable);
+    };
+
+    const setupSubscription = (tableName: string) => {
+      channel = supabase
+        .channel('asset_updates')
+        .on('postgres_changes', { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: tableName,
+          filter: `user_id=eq.${userId}`
+        }, (payload) => {
+          setAssets(prev => [payload.new as Asset, ...prev]);
+        })
+        .subscribe();
     };
 
     fetchAssets();
 
-    const channel = supabase
-      .channel('asset_updates')
-      .on('postgres_changes', { 
-        event: 'INSERT', 
-        schema: 'public', 
-        table: 'generated_assets',
-        filter: `user_id=eq.${userId}`
-      }, (payload) => {
-        setAssets(prev => [payload.new as Asset, ...prev]);
-      })
-      .subscribe();
-
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, [userId]);
 
@@ -89,7 +108,7 @@ export const RecentAssets: React.FC<{ userId: string }> = ({ userId }) => {
               className="group relative aspect-square rounded-2xl overflow-hidden bg-white/5 border border-white/10"
             >
               <img 
-                src={asset.url} 
+                src={asset.image_data || asset.url || ''} 
                 alt="Generated Asset"
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 referrerPolicy="no-referrer"
